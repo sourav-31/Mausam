@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String              @id @default(uuid())
+  email          String              @unique
+  password       String
+  name           String
+  profile        UserProfile?
+  preferences    WeatherPreference[]
+  savedLocations SavedLocation[]
+  notifications  Notification[]
+  settings       UserSettings?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+}
+
+model UserProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  primaryProfile String   // Student, Farmer, Traveller, Driver, Fitness Enthusiast, General User
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model WeatherPreference {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category  String   // Temperature, Rain Forecast, Severe Weather, Wind, UV Index, Outdoor Conditions, Travel Conditions, Agriculture Weather
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SavedLocation {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String   // Home, Work, College, Family, Travel Destination
+  city      String
+  latitude  Float
+  longitude Float
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  priority  String   // INFO, ADVISORY, WARNING, CRITICAL
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model UserSettings {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  darkMode            Boolean  @default(false)
+  highContrastMode    Boolean  @default(false)
+  largerText          Boolean  @default(false)
+  notificationsEnabled Boolean @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
