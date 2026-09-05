@@ -18,7 +18,7 @@ export class InsightEngine {
     const { current } = weather;
     
     // Check for severe weather first
-    if (current.condition.main === 'Thunderstorm' || current.windSpeed > 40 || current.precipitationProbability > 80) {
+    if (current.condition.main === 'Thunderstorm' || current.windSpeed > 40) {
       return this.generateSevereInsight(weather, userProfile);
     }
     
@@ -60,8 +60,8 @@ export class InsightEngine {
       case 'Farmer':
         return {
           title: "Rainfall Expected",
-          message: "Moderate to heavy rainfall is expected today.",
-          recommendation: "Review irrigation plans before watering crops.",
+          message: "Moderate to heavy rainfall is expected today. Review your irrigation plans before watering crops.",
+          recommendation: "Review irrigation plans and postpone field spraying.",
           reasoning: defaultReasoning
         };
       case 'Traveller':

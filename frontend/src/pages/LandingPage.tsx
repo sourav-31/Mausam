@@ -1,10 +1,9 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CloudRain, Sun, Wind, CloudLightning, MapPin, BrainCircuit, Bell, UserCircle } from 'lucide-react';
+import { Sun, MapPin, BrainCircuit, Bell, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function LandingPage() {
-  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
