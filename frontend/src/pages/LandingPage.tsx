@@ -1,99 +1,55 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Sun, MapPin, BrainCircuit, Bell, UserCircle } from 'lucide-react';
+import { Sun, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function LandingPage() {
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
-      <header className="px-6 py-4 flex justify-between items-center max-w-6xl mx-auto">
-        <div className="flex items-center space-x-2">
-          <Sun className="h-8 w-8 text-amber-500" />
-          <span className="font-bold text-2xl tracking-tight text-blue-950 dark:text-blue-50">MAUSAM</span>
-        </div>
-        <nav>
-          <Button variant="ghost" asChild>
-            <Link to="/login">Login</Link>
-          </Button>
-        </nav>
-      </header>
+    <div className="min-h-screen relative flex items-center justify-center overflow-hidden bg-slate-900">
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{ 
+          backgroundImage: 'url("https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=2070&auto=format&fit=crop")',
+        }}
+      />
+      {/* Dark overlay for readability */}
+      <div className="absolute inset-0 z-0 bg-black/40" />
 
-      <main className="max-w-6xl mx-auto px-6 py-12 md:py-24">
-        <div className="text-center space-y-6 max-w-3xl mx-auto">
-          <motion.h1 
-            className="text-5xl md:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            Your Weather. <span className="text-blue-600">Personalized for You.</span>
-          </motion.h1>
-          <motion.p 
-            className="text-xl text-slate-600 dark:text-slate-300"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            Get intelligent weather insights that adapt to your location, lifestyle, preferences, and daily activities.
-          </motion.p>
-          
-          <motion.div 
-            className="flex justify-center space-x-4 pt-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-8" asChild>
-              <Link to="/register">Explore My Weather</Link>
-            </Button>
-            <Button size="lg" variant="outline" className="rounded-full px-8" asChild>
-              <Link to="/login">Explore Demo</Link>
-            </Button>
-          </motion.div>
+      {/* Content Container */}
+      <div className="relative z-10 flex flex-col items-center text-center px-6 w-full max-w-md">
+        
+        {/* Icon Composition */}
+        <div className="mb-6 relative flex items-center justify-center h-24 w-24">
+          <Sun className="h-14 w-14 text-yellow-400 fill-yellow-400 absolute top-1 right-2 drop-shadow-sm" />
+          <Cloud className="h-20 w-20 text-white fill-white absolute bottom-1 left-2 drop-shadow-md" />
         </div>
 
-        <div className="mt-32">
-          <h2 className="text-3xl font-bold text-center mb-12">Why Personalized Weather?</h2>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <FeatureCard 
-              icon={<MapPin className="h-10 w-10 text-blue-500" />}
-              title="Location Aware"
-              description="Weather information strictly relevant to where you are right now."
-            />
-            <FeatureCard 
-              icon={<BrainCircuit className="h-10 w-10 text-purple-500" />}
-              title="Intelligent Insights"
-              description="Raw meteorological data automatically converted into meaningful daily recommendations."
-            />
-            <FeatureCard 
-              icon={<Bell className="h-10 w-10 text-red-500" />}
-              title="Smart Alerts"
-              description="Important warnings prioritized automatically so you never miss critical information."
-            />
-            <FeatureCard 
-              icon={<UserCircle className="h-10 w-10 text-green-500" />}
-              title="Built Around You"
-              description="Different users receive different weather priorities based on their lifestyle (e.g. Farmer vs Student)."
-            />
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-}
+        {/* Title */}
+        <h1 className="text-4xl font-bold text-white mb-4 tracking-tight drop-shadow-lg">
+          Mausam for You
+        </h1>
+        
+        {/* Subtitle */}
+        <p className="text-lg text-white/95 mb-10 font-medium drop-shadow-lg max-w-[260px] leading-snug">
+          Personalized weather for a smarter tomorrow
+        </p>
 
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
-  return (
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 text-center hover:shadow-md transition-shadow">
-      <div className="flex justify-center mb-4">
-        <div className="p-3 bg-slate-50 dark:bg-slate-700 rounded-full">
-          {icon}
+        {/* Call to Action Button */}
+        <Button 
+          asChild 
+          size="lg" 
+          className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-xl py-6 text-lg font-semibold shadow-xl transition-all border-0"
+        >
+          <Link to="/register">Get Started</Link>
+        </Button>
+
+        {/* Secondary Links */}
+        <div className="mt-8 text-white font-medium text-sm drop-shadow-lg tracking-wide">
+          <Link to="/login" className="hover:text-white/80 transition-colors">Login</Link>
+          <span className="mx-4 opacity-70">/</span>
+          <Link to="/register" className="hover:text-white/80 transition-colors">Sign Up</Link>
         </div>
       </div>
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">{description}</p>
     </div>
   );
 }
