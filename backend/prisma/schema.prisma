@@ -8,17 +8,20 @@ datasource db {
 }
 
 model User {
-  id             String              @id @default(uuid())
-  email          String              @unique
-  password       String
-  name           String
-  profile        UserProfile?
-  preferences    WeatherPreference[]
-  savedLocations SavedLocation[]
-  notifications  Notification[]
-  settings       UserSettings?
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
+  id                 String              @id @default(uuid())
+  email              String              @unique
+  password           String
+  name               String
+  onboardingStatus   String              @default("not_started") // not_started | routine_pending | health_pending | completed
+  profile            UserProfile?
+  preferences        WeatherPreference[]
+  savedLocations     SavedLocation[]
+  notifications      Notification[]
+  settings           UserSettings?
+  routine            UserRoutine?
+  healthProfile      UserHealthProfile?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 }
 
 model UserProfile {
@@ -64,13 +67,42 @@ model Notification {
 }
 
 model UserSettings {
-  id                  String   @id @default(uuid())
-  userId              String   @unique
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  darkMode            Boolean  @default(false)
-  highContrastMode    Boolean  @default(false)
-  largerText          Boolean  @default(false)
-  notificationsEnabled Boolean @default(true)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  darkMode             Boolean  @default(false)
+  highContrastMode     Boolean  @default(false)
+  largerText           Boolean  @default(false)
+  notificationsEnabled Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model UserRoutine {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  routineTypes      String[] // e.g. ["College/School", "Gym/Fitness"]
+  activities        String[] // e.g. ["Morning Walk", "Cycling"]
+  activityFrequency String?  // "Daily" | "Several times a week" | "Weekly" | "Occasionally"
+  preferredTime     String?  // "Morning" | "Afternoon" | "Evening" | "Night"
+  commuteMethod     String?  // "Walking" | "Bicycle" | "Bike/Scooter" | "Car" | "Public Transport"
+  skipped           Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model UserHealthProfile {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  allergies             String[] // e.g. ["Dust", "Pollen"]
+  allergiesOther        String?
+  healthConditions      String[] // e.g. ["Asthma", "Migraine"]
+  healthConditionsOther String?
+  weatherSensitivities  String[] // e.g. ["Extreme heat", "Rain"]
+  additionalInfo        String?
+  skipped               Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }

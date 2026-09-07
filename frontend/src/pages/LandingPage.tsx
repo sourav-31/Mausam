@@ -1,19 +1,24 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Cloud, Map, Lightbulb, Wind, Settings, HelpCircle, Activity, 
-  MapPin, ChevronDown, Search, Bell, User, 
-  Sun, CloudRain, Droplets, Leaf, Eye, Umbrella, Sunrise,
-  ArrowUp, ArrowDown, ChevronRight, PlayCircle,
+  MapPin, ChevronDown, Search, Bell, 
+  Sun, Droplets, Sunrise, User, LogOut,
+  ArrowUp, ArrowDown, PlayCircle,
   Loader2
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { weatherService, type LocationSearchResult, type WeatherData } from '../services/weather.service';
 import { getWeatherDescription, getWeatherIcon } from '../lib/weather-utils';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function LandingPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<LocationSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  
+  const { user, logout } = useAuth();
   
   const [activeLocation, setActiveLocation] = useState<LocationSearchResult>({
     id: 5391959,
@@ -139,8 +144,8 @@ export default function LandingPage() {
         </div>
 
         <div className="p-6 border-t border-slate-100 space-y-4">
-          <NavItem icon={<HelpCircle />} label="Support" minimal />
-          <NavItem icon={<Activity />} label="System Status" minimal />
+          <NavItem icon={<Settings />} label="Settings" />
+          <NavItem icon={<HelpCircle />} label="Help Center" />
         </div>
       </aside>
 
@@ -209,14 +214,48 @@ export default function LandingPage() {
                <Bell className="w-4 h-4" />
                <span className="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full border-2 border-white"></span>
              </button>
-             <button className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center border-2 border-white hover:border-slate-200 transition-all cursor-pointer shadow-sm">
-                <span className="text-xs font-bold text-white tracking-wider">AX</span>
-             </button>
+             {user ? (
+               <div className="relative">
+                 <button 
+                   onClick={() => setShowProfileMenu(!showProfileMenu)}
+                   className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center border-2 border-white hover:border-slate-200 transition-all cursor-pointer shadow-sm focus:outline-none"
+                 >
+                    <span className="text-xs font-bold text-white tracking-wider">{user.name?.charAt(0).toUpperCase() || 'U'}</span>
+                 </button>
+                 
+                 {showProfileMenu && (
+                   <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-50">
+                     <div className="px-4 py-2 border-b border-slate-100 mb-1">
+                       <p className="text-sm font-bold text-slate-800 truncate">{user.name}</p>
+                       <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                     </div>
+                     <button className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2 transition-colors">
+                       <User className="w-4 h-4" /> Profile
+                     </button>
+                     <button className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2 transition-colors">
+                       <Settings className="w-4 h-4" /> Settings
+                     </button>
+                     <button 
+                       onClick={() => { logout(); setShowProfileMenu(false); }}
+                       className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors border-t border-slate-100 mt-1"
+                     >
+                       <LogOut className="w-4 h-4" /> Logout
+                     </button>
+                   </div>
+                 )}
+               </div>
+             ) : (
+               <Link to="/login">
+                 <button className="px-5 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-xs font-bold rounded-full shadow-lg shadow-blue-500/20 transition-all">
+                   Login / Sign Up
+                 </button>
+               </Link>
+             )}
           </div>
         </header>
 
         {/* Dashboard Area */}
-        <main className="flex-1 overflow-y-auto p-8 space-y-6" onClick={() => setShowDropdown(false)}>
+        <main className="flex-1 overflow-y-auto p-8 space-y-6" onClick={() => { setShowDropdown(false); setShowProfileMenu(false); }}>
           
           {isLoadingWeather || !weatherData ? (
              <div className="w-full h-64 flex flex-col items-center justify-center text-slate-400">
@@ -229,7 +268,7 @@ export default function LandingPage() {
               <div className="bg-gradient-to-r from-blue-50 to-white rounded-2xl p-6 border border-blue-100 flex flex-col md:flex-row md:justify-between md:items-center gap-4 relative overflow-hidden shadow-sm">
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Good Morning, Alex!</h1>
+                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Good Morning, {user ? user.name.split(' ')[0] : 'Explorer'}!</h1>
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200 tracking-wide uppercase">RUNNING OPTIMAL (9/10)</span>
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200 tracking-wide uppercase hidden sm:inline-block">
                       {weatherData.current.precipitation > 0 ? 'COMMUTE: WET' : 'COMMUTE: SMOOTH'}
@@ -506,11 +545,11 @@ export default function LandingPage() {
 }
 
 // Sub-components
-function NavItem({ icon, label, active = false, minimal = false }: { icon: React.ReactNode, label: string, active?: boolean, minimal?: boolean }) {
+function NavItem({ icon, label, active = false }: { icon: React.ReactNode, label: string, active?: boolean }) {
   return (
     <a href="#" className={`flex items-center gap-3 px-3 py-3 rounded-xl text-[13px] font-bold transition-all ${active ? 'bg-blue-50 text-blue-600 border border-blue-100 shadow-sm' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 border border-transparent'}`}>
       <div className={`${active ? 'text-blue-600' : 'text-slate-400'}`}>
-        {React.cloneElement(icon as React.ReactElement, { className: 'w-4 h-4' })}
+        {React.cloneElement(icon as React.ReactElement<any>, { className: 'w-4 h-4' })}
       </div>
       {label}
     </a>
@@ -559,7 +598,7 @@ function InfoCard({ title, icon, value, label, desc, color, barValue }: { title:
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">{title}</h3>
           <div className="w-6 h-6 rounded-md bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 shadow-sm shrink-0">
-             {React.cloneElement(icon as React.ReactElement, { className: 'w-3.5 h-3.5' })}
+             {React.cloneElement(icon as React.ReactElement<any>, { className: 'w-3.5 h-3.5' })}
           </div>
         </div>
         <div className="flex items-baseline gap-2 mb-1.5">

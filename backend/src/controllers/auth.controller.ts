@@ -22,6 +22,7 @@ export const register = async (req: Request, res: Response) => {
         name,
         email,
         password: hashedPassword,
+        onboardingStatus: 'routine_pending',
         settings: {
           create: {
             darkMode: false,
@@ -72,6 +73,8 @@ export const getMe = async (req: AuthRequest, res: Response) => {
         preferences: true,
         savedLocations: true,
         settings: true,
+        routine: true,
+        healthProfile: true,
       }
     });
 

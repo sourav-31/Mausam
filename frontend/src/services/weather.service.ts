@@ -73,6 +73,7 @@ export interface WeatherData {
     temperature_80m: number[];
     direct_radiation_instant: number[];
     shortwave_radiation_instant: number[];
+    weather_code: number[];
   };
   daily: {
     time: string[];

@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import weatherRoutes from './routes/weather.routes';
 import personalizationRoutes from './routes/personalization.routes';
+import onboardingRoutes from './routes/onboarding.routes';
 // import locationRoutes from './routes/location.routes';
 
 dotenv.config();
@@ -23,6 +24,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/personalized-home', personalizationRoutes);
+app.use('/api/onboarding', onboardingRoutes);
 // app.use('/api/locations', locationRoutes);
 
 app.get('/health', (req, res) => {

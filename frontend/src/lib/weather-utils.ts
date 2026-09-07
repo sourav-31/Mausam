@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
-  Sun, Cloud, CloudRain, CloudLightning, CloudSnow, CloudDrizzle, 
-  Wind, Droplets, Snowflake, Eye, Moon
+  Sun, Cloud, CloudRain, CloudLightning, CloudSnow, 
+  Moon
 } from 'lucide-react';
 
 export function getWeatherDescription(code: number): string {
