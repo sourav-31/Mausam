@@ -27,6 +27,51 @@ export const searchLocation = async (req: Request, res: Response): Promise<void>
   }
 };
 
+export const reverseGeocode = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { lat, lon } = req.query;
+    if (!lat || !lon) {
+      res.status(400).json({ error: 'Latitude (lat) and longitude (lon) are required' });
+      return;
+    }
+
+    // Open-Meteo geocoding can reverse-geocode: search near a point using 
+    // the Nominatim-style approach via their own reverse endpoint isn't available,
+    // so we query by lat/lon via a generic search of nearby results using
+    // the official Open-Meteo geocoding reverse approach.
+    // As Open-Meteo geocoding does not have a dedicated reverse endpoint, 
+    // we use BigDataCloud free reverse geocoding (no API key required, works serverside)
+    const response = await axios.get('https://api.bigdatacloud.net/data/reverse-geocode-client', {
+      params: {
+        latitude: lat,
+        longitude: lon,
+        localityLanguage: 'en',
+      }
+    });
+
+    const data = response.data;
+    // Build a LocationSearchResult-compatible response
+    const result = {
+      id: Math.floor(Math.random() * 1000000),
+      name: data.city || data.locality || data.principalSubdivision || 'Unknown',
+      latitude: parseFloat(lat as string),
+      longitude: parseFloat(lon as string),
+      elevation: 0,
+      feature_code: 'GPS',
+      country_code: data.countryCode || '',
+      timezone: 'auto',
+      country_id: 0,
+      country: data.countryName || '',
+      admin1: data.principalSubdivision || '',
+    };
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error reverse geocoding:', error);
+    res.status(500).json({ error: 'Failed to reverse geocode location' });
+  }
+};
+
 export const getForecast = async (req: Request, res: Response): Promise<void> => {
   try {
     const { lat, lon, timezone } = req.query;

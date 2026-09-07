@@ -112,6 +112,13 @@ export const weatherService = {
     return response.data;
   },
 
+  async reverseGeocode(lat: number, lon: number): Promise<LocationSearchResult> {
+    const response = await api.get('/weather/location/reverse', {
+      params: { lat, lon }
+    });
+    return response.data;
+  },
+
   async getForecast(lat: number, lon: number, timezone: string = 'auto'): Promise<WeatherData> {
     const response = await api.get('/weather/forecast', {
       params: { lat, lon, timezone }

@@ -1,43 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Cloud, Map, Lightbulb, Wind, Settings, HelpCircle, Activity, 
+  Cloud, Map, Lightbulb, Wind, Settings, HelpCircle,
   MapPin, ChevronDown, Search, Bell, 
   Sun, Droplets, Sunrise, User, LogOut,
   ArrowUp, ArrowDown, PlayCircle,
   Loader2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { weatherService, type LocationSearchResult, type WeatherData } from '../services/weather.service';
+import { weatherService, type WeatherData } from '../services/weather.service';
 import { getWeatherDescription, getWeatherIcon } from '../lib/weather-utils';
 import { useAuth } from '../contexts/AuthContext';
+import { useLocation } from '../contexts/LocationContext';
 
 export default function LandingPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<LocationSearchResult[]>([]);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   
   const { user, logout } = useAuth();
-  
-  const [activeLocation, setActiveLocation] = useState<LocationSearchResult>({
-    id: 5391959,
-    name: 'San Francisco',
-    latitude: 37.7749,
-    longitude: -122.4194,
-    elevation: 16,
-    feature_code: 'PPLA2',
-    country_code: 'US',
-    timezone: 'America/Los_Angeles',
-    country_id: 6252001,
-    country: 'United States',
-    admin1: 'California'
-  });
+  const { activeLocation, setActiveLocation, openLocationModal } = useLocation();
 
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [isLoadingWeather, setIsLoadingWeather] = useState(true);
 
-  // Use a ref or simple debounce for searching
+  // Header search bar (quick inline search)
   useEffect(() => {
     if (searchQuery.length < 2) {
       setSearchResults([]);
@@ -54,15 +42,20 @@ export default function LandingPage() {
         setIsSearching(false);
       }
     }, 500);
-
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Reload weather whenever the global active location changes
   useEffect(() => {
     async function loadWeather() {
       setIsLoadingWeather(true);
+      setWeatherData(null); // clear stale data immediately
       try {
-        const data = await weatherService.getForecast(activeLocation.latitude, activeLocation.longitude, activeLocation.timezone);
+        const data = await weatherService.getForecast(
+          activeLocation.latitude,
+          activeLocation.longitude,
+          activeLocation.timezone
+        );
         setWeatherData(data);
       } catch (err) {
         console.error(err);
@@ -73,7 +66,7 @@ export default function LandingPage() {
     loadWeather();
   }, [activeLocation]);
 
-  const handleSelectLocation = (loc: LocationSearchResult) => {
+  const handleSelectLocation = (loc: any) => {
     setActiveLocation(loc);
     setSearchQuery('');
     setShowDropdown(false);
@@ -120,12 +113,16 @@ export default function LandingPage() {
           </div>
 
           <div className="mb-8">
-            <div className="flex justify-between items-center bg-slate-100 p-3 rounded-xl mb-4 border border-slate-200 shadow-sm cursor-pointer hover:border-slate-300 transition-colors overflow-hidden">
+             <div
+               className="flex justify-between items-center bg-slate-100 p-3 rounded-xl mb-4 border border-slate-200 shadow-sm cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors overflow-hidden group"
+               onClick={openLocationModal}
+               title="Change location"
+             >
                <div className="min-w-0 flex-1 pr-2">
                  <p className="text-xs text-slate-900 font-bold mb-0.5 truncate">{activeLocation.name}</p>
                  <p className="text-[9px] text-slate-500 font-medium truncate">{activeLocation.admin1 ? `${activeLocation.admin1}, ` : ''}{activeLocation.country_code}</p>
                </div>
-               <Activity className="w-4 h-4 text-emerald-500 shrink-0" />
+               <MapPin className="w-4 h-4 text-blue-500 shrink-0 group-hover:scale-110 transition-transform" />
             </div>
             
             <nav className="space-y-1">
@@ -154,11 +151,15 @@ export default function LandingPage() {
         {/* Header */}
         <header className="h-16 flex items-center justify-between px-8 border-b border-slate-200 bg-white/90 backdrop-blur-md sticky top-0 z-50 shrink-0">
           <div className="flex items-center gap-6">
-             <div className="flex items-center gap-2 hover:bg-slate-100 p-2 rounded-lg cursor-pointer transition-colors max-w-[200px]">
-               <MapPin className="w-4 h-4 text-slate-500 shrink-0" />
-               <span className="text-sm font-bold text-slate-800 truncate">{activeLocation.name}</span>
+             <button
+               onClick={openLocationModal}
+               className="flex items-center gap-2 hover:bg-slate-100 p-2 rounded-lg cursor-pointer transition-colors max-w-[200px] group"
+               title="Change location"
+             >
+               <MapPin className="w-4 h-4 text-slate-500 shrink-0 group-hover:text-blue-500 transition-colors" />
+               <span className="text-sm font-bold text-slate-800 truncate group-hover:text-blue-600 transition-colors">{activeLocation.name}</span>
                <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
-             </div>
+             </button>
              
              <nav className="hidden md:flex items-center gap-6 text-xs font-bold text-slate-500">
                 <a href="#" className="text-slate-900 border-b-2 border-blue-600 py-5">Dashboard</a>
