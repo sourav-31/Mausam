@@ -4,7 +4,7 @@ import {
   MapPin, ChevronDown, Search, Bell, 
   Sun, Droplets, Sunrise, User, LogOut,
   ArrowUp, ArrowDown, PlayCircle,
-  Loader2
+  Loader2, Activity
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { weatherService, type WeatherData } from '../services/weather.service';
@@ -15,6 +15,8 @@ import { useLocation } from '../contexts/LocationContext';
 export default function LandingPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isLoadingWeather, setIsLoadingWeather] = useState(true);
+  const [errorFetchingWeather, setErrorFetchingWeather] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -23,7 +25,6 @@ export default function LandingPage() {
   const { activeLocation, setActiveLocation, openLocationModal } = useLocation();
 
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
-  const [isLoadingWeather, setIsLoadingWeather] = useState(true);
 
   // Header search bar (quick inline search)
   useEffect(() => {
@@ -57,8 +58,10 @@ export default function LandingPage() {
           activeLocation.timezone
         );
         setWeatherData(data);
-      } catch (err) {
+        setErrorFetchingWeather(null);
+      } catch (err: any) {
         console.error(err);
+        setErrorFetchingWeather(err.message || 'Unknown error');
       } finally {
         setIsLoadingWeather(false);
       }
@@ -258,7 +261,12 @@ export default function LandingPage() {
         {/* Dashboard Area */}
         <main className="flex-1 overflow-y-auto p-8 space-y-6" onClick={() => { setShowDropdown(false); setShowProfileMenu(false); }}>
           
-          {isLoadingWeather || !weatherData ? (
+          {errorFetchingWeather ? (
+             <div className="w-full h-64 flex flex-col items-center justify-center text-red-500">
+               <p className="font-bold text-sm">Failed to load weather data.</p>
+               <p className="text-xs">{errorFetchingWeather}</p>
+             </div>
+          ) : isLoadingWeather || !weatherData ? (
              <div className="w-full h-64 flex flex-col items-center justify-center text-slate-400">
                <Loader2 className="w-8 h-8 animate-spin mb-4 text-blue-500" />
                <p className="font-bold text-sm">Syncing with orbital telemetry...</p>
