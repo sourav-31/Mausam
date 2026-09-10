@@ -41,7 +41,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-if (process.env.NODE_ENV !== 'production') {
+if (!process.env.VERCEL) {
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
   });
