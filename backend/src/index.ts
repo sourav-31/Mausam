@@ -12,18 +12,14 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-const allowedOrigins = [
+const allowedOrigins: (RegExp | string)[] = [
   /^http:\/\/localhost:\d+$/,
   /^http:\/\/127\.0\.0\.1:\d+$/,
+  /^https:\/\/.*\.vercel\.app$/,
 ];
 
 if (process.env.FRONTEND_URL) {
-  // Add exactly the provided URL
   allowedOrigins.push(new RegExp(`^${process.env.FRONTEND_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`));
-  // Optional: Also allow any vercel preview deployments if FRONTEND_URL is a vercel domain
-  if (process.env.FRONTEND_URL.includes('vercel.app')) {
-    allowedOrigins.push(/^https:\/\/.*\.vercel\.app$/);
-  }
 }
 
 app.use(cors({
