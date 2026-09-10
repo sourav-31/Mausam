@@ -1,9 +1,28 @@
 {
   "name": "mausam-root",
   "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
-    "build": "npm run build --prefix frontend",
-    "install": "npm install --prefix frontend && npm install --prefix backend",
-    "postinstall": "npx prisma generate --schema=backend/prisma/schema.prisma"
+    "build": "npm run build --workspace=frontend",
+    "postinstall": "npm run prisma:generate --prefix backend || exit 0"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "axios": "^1.20.0",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.13.3",
+    "prisma": "^5.22.0",
+    "typescript": "^5.9.3"
   }
 }
