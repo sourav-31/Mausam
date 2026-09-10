@@ -4,6 +4,7 @@ import AuthPage from './pages/AuthPage';
 import OnboardingPage from './pages/OnboardingPage';
 import HealthProfilePage from './pages/HealthProfilePage';
 import PersonalizedHome from './pages/PersonalizedHome';
+import RadarPage from './pages/RadarPage';
 import { useAuth } from './contexts/AuthContext';
 
 // ── Route Protection ───────────────────────────────────────────────────────────
@@ -52,6 +53,7 @@ function App() {
         <Routes>
           {/* Public — main dashboard (accessible to all) */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/radar" element={<RadarPage />} />
 
           {/* Public — auth pages (redirect if already logged in) */}
           <Route path="/login" element={<RequireGuest><AuthPage /></RequireGuest>} />
