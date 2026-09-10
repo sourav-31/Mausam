@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import {
   CloudRain,
@@ -26,6 +26,7 @@ import {
 } from '../services/radar.service';
 import { weatherService, type LocationSearchResult } from '../services/weather.service';
 import { getWeatherDescription } from '../lib/weather-utils';
+import TemperatureRasterLayer from '../components/TemperatureRasterLayer';
 
 // Custom controller to dynamically re-center Leaflet map
 function MapRecenter({ center, zoom }: { center: [number, number]; zoom: number }) {
@@ -33,6 +34,16 @@ function MapRecenter({ center, zoom }: { center: [number, number]; zoom: number 
   useEffect(() => {
     map.flyTo(center, zoom, { duration: 1.2 });
   }, [center, zoom, map]);
+  return null;
+}
+
+// Custom controller to capture clicks anywhere on the map
+function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click(e) {
+      onMapClick(e.latlng.lat, e.latlng.lng);
+    },
+  });
   return null;
 }
 
@@ -77,6 +88,65 @@ export default function RadarPage() {
   // Regional Radar Telemetry Points
   const [radarPoints, setRadarPoints] = useState<RadarPoint[]>([]);
   const [selectedPoint, setSelectedPoint] = useState<RadarPoint | null>(null);
+
+  // Dynamic Click-to-Inspect Weather State
+  const [clickedLocation, setClickedLocation] = useState<{
+    lat: number;
+    lng: number;
+    name: string;
+    temp?: number;
+    feelsLike?: number;
+    condition?: string;
+    humidity?: number;
+    windSpeed?: number;
+    windDirection?: number;
+    precipitationProb?: number;
+    loading: boolean;
+  } | null>(null);
+
+  const handleMapClick = async (lat: number, lng: number) => {
+    setClickedLocation({
+      lat,
+      lng,
+      name: `${lat.toFixed(2)}°, ${lng.toFixed(2)}°`,
+      loading: true,
+    });
+
+    try {
+      const [forecast, geo] = await Promise.allSettled([
+        weatherService.getForecast(lat, lng),
+        weatherService.reverseGeocode(lat, lng),
+      ]);
+
+      let name = `${lat.toFixed(2)}°, ${lng.toFixed(2)}°`;
+      if (geo.status === 'fulfilled' && geo.value) {
+        const g = geo.value;
+        name = g.name + (g.admin1 ? `, ${g.admin1}` : '') + (g.country ? `, ${g.country}` : '');
+      }
+
+      if (forecast.status === 'fulfilled' && forecast.value) {
+        const f = forecast.value;
+        setClickedLocation({
+          lat,
+          lng,
+          name,
+          temp: f.current.temperature_2m,
+          feelsLike: f.current.apparent_temperature,
+          condition: getWeatherDescription(f.current.weather_code),
+          humidity: f.current.relative_humidity_2m,
+          windSpeed: f.current.wind_speed_10m,
+          windDirection: f.current.wind_direction_10m,
+          precipitationProb: f.hourly?.precipitation_probability?.[0] ?? (f.current.precipitation > 0 ? 75 : 15),
+          loading: false,
+        });
+      } else {
+        setClickedLocation(prev => (prev ? { ...prev, loading: false } : null));
+      }
+    } catch (err) {
+      console.error('Failed to load clicked point weather:', err);
+      setClickedLocation(prev => (prev ? { ...prev, loading: false } : null));
+    }
+  };
 
   // Location Search State
   const [searchQuery, setSearchQuery] = useState('');
@@ -242,34 +312,7 @@ export default function RadarPage() {
     }
   };
 
-  // Helper to create HTML DivIcons for markers
-  const createTempIcon = (temp: number, isCenter = false) => {
-    const color = getTemperatureColor(temp);
-    return L.divIcon({
-      className: 'custom-temp-icon',
-      html: `
-        <div style="
-          background-color: ${color};
-          color: white;
-          font-weight: 800;
-          font-size: 11px;
-          padding: 3px 7px;
-          border-radius: 9999px;
-          border: 2px solid white;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-          display: flex;
-          align-items: center;
-          gap: 3px;
-          transform: translate(-50%, -50%);
-          ${isCenter ? 'ring: 3px solid #2563eb; transform: translate(-50%, -50%) scale(1.15);' : ''}
-        ">
-          <span>${Math.round(temp)}°</span>
-        </div>
-      `,
-      iconSize: [40, 24],
-    });
-  };
-
+  // Helper to create HTML DivIcons for wind and storm markers
   const createWindIcon = (speed: number, direction: number) => {
     return L.divIcon({
       className: 'custom-wind-icon',
@@ -382,7 +425,7 @@ export default function RadarPage() {
               </h1>
               <p className="text-[10px] font-semibold text-slate-400 mt-0.5 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                Real-time Open-Meteo & RainViewer Feed
+                Real-time Satellite & Radar Feed
               </p>
             </div>
           </div>
@@ -567,11 +610,18 @@ export default function RadarPage() {
         >
           <MapRecenter center={mapCenter} zoom={mapZoom} />
 
-          {/* High-quality CartoDB Voyager Light Tiles */}
+          {/* OpenStreetMap Base Layer - Free, High Resolution, Zero Watermark */}
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            maxZoom={18}
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            maxZoom={19}
+          />
+
+          {/* Full-Screen Continuous Temperature Raster Layer (Zoom.earth style) */}
+          <TemperatureRasterLayer
+            active={activeLayer === 'temperature'}
+            opacity={layerOpacity}
+            stations={radarPoints}
           />
 
           {/* RainViewer Real-time Radar Tile Layer */}
@@ -580,52 +630,100 @@ export default function RadarPage() {
               key={currentFrame.path}
               url={`${radarHost}${currentFrame.path}/256/{z}/{x}/{y}/2/1_1.png`}
               opacity={layerOpacity}
+              maxNativeZoom={12}
+              maxZoom={19}
               zIndex={500}
             />
           )}
 
-          {/* Temperature Layer: Thermal Circles & Badges */}
-          {(activeLayer === 'temperature' || activeLayer === 'precipitation') &&
-            radarPoints.map(pt => (
-              <React.Fragment key={`temp-circ-${pt.id}`}>
-                {activeLayer === 'temperature' && (
-                  <Circle
-                    center={[pt.lat, pt.lng]}
-                    radius={35000}
-                    pathOptions={{
-                      color: getTemperatureColor(pt.temp),
-                      fillColor: getTemperatureColor(pt.temp),
-                      fillOpacity: 0.28,
-                      weight: 1,
-                    }}
-                  />
-                )}
-                {activeLayer === 'temperature' && (
-                  <Marker
-                    position={[pt.lat, pt.lng]}
-                    icon={createTempIcon(pt.temp, pt.id === 'station-0')}
-                    eventHandlers={{
-                      click: () => setSelectedPoint(pt),
-                    }}
-                  >
-                    <Popup className="radar-custom-popup">
-                      <div className="p-3 max-w-[200px]">
-                        <p className="text-xs font-extrabold text-slate-900 mb-1">{pt.name}</p>
-                        <p className="text-sm font-extrabold" style={{ color: getTemperatureColor(pt.temp) }}>
-                          {pt.temp}°C
-                        </p>
-                        <p className="text-[10px] text-slate-500 mb-2">Feels like {pt.feelsLike}°C • {pt.condition}</p>
-                        <div className="text-[10px] space-y-0.5 text-slate-600 font-medium">
-                          <p>Humidity: <strong>{pt.humidity}%</strong></p>
-                          <p>Wind: <strong>{pt.windSpeed} km/h ({getWindDirectionLabel(pt.windDirection)})</strong></p>
-                          <p>Rain Risk: <strong>{pt.precipitationProb}%</strong></p>
-                        </div>
+          {/* Click Handler: Inspect Weather Anywhere on Map */}
+          <MapClickHandler onMapClick={handleMapClick} />
+
+          {/* Dynamic Click Popup: Shows Live Temperature & Location Details only when clicked */}
+          {clickedLocation && (
+            <Popup
+              position={[clickedLocation.lat, clickedLocation.lng]}
+              eventHandlers={{
+                remove: () => setClickedLocation(null),
+              }}
+              className="radar-custom-popup"
+            >
+              <div className="p-3.5 min-w-[220px] max-w-[260px]">
+                {clickedLocation.loading ? (
+                  <div className="flex items-center gap-2 py-4 justify-center text-slate-500 text-xs font-semibold">
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                    <span>Measuring local telemetry...</span>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div>
+                        <span className="text-xs font-extrabold text-slate-900 block leading-tight">
+                          {clickedLocation.name}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium">
+                          {clickedLocation.lat.toFixed(2)}°N, {clickedLocation.lng.toFixed(2)}°E
+                        </span>
                       </div>
-                    </Popup>
-                  </Marker>
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+                        INSPECTED
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between my-2.5 pb-2 border-b border-slate-100">
+                      <div>
+                        <span
+                          className="text-2xl font-black tracking-tight"
+                          style={{ color: getTemperatureColor(clickedLocation.temp ?? 25) }}
+                        >
+                          {Math.round(clickedLocation.temp ?? 0)}°C
+                        </span>
+                        <p className="text-[10px] text-slate-500 font-medium">
+                          Feels like {Math.round(clickedLocation.feelsLike ?? 0)}°C
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xs font-bold text-slate-800 block">
+                          {clickedLocation.condition}
+                        </span>
+                        <span className="text-[10px] text-blue-600 font-bold">
+                          🌧️ {clickedLocation.precipitationProb}% Rain
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-1.5 text-[10px] bg-slate-50 p-2 rounded-lg border border-slate-100 mb-3">
+                      <div>
+                        <span className="text-slate-400 block font-semibold">WIND</span>
+                        <span className="font-bold text-slate-700">
+                          {clickedLocation.windSpeed} km/h {getWindDirectionLabel(clickedLocation.windDirection ?? 0)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block font-semibold">HUMIDITY</span>
+                        <span className="font-bold text-slate-700">{clickedLocation.humidity}%</span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        const newLoc = {
+                          name: clickedLocation.name,
+                          latitude: clickedLocation.lat,
+                          longitude: clickedLocation.lng,
+                        };
+                        setActiveLocation(newLoc);
+                        localStorage.setItem('last_active_location', JSON.stringify(newLoc));
+                      }}
+                      className="w-full py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-md text-[11px] font-bold transition-all shadow-xs"
+                    >
+                      Set as Active Station
+                    </button>
+                  </div>
                 )}
-              </React.Fragment>
-            ))}
+              </div>
+            </Popup>
+          )}
 
           {/* Wind Layer: Directional Vectors & Velocity */}
           {activeLayer === 'wind' &&
@@ -721,15 +819,24 @@ export default function RadarPage() {
           {activeLayer === 'temperature' && (
             <div>
               <div className="flex items-center justify-between text-[10px] font-bold text-slate-600 mb-1">
-                <span>Thermal Gradient</span>
-                <span className="text-amber-600 font-extrabold">°C</span>
+                <span>Thermal Map (°C)</span>
+                <span className="text-amber-600 font-extrabold text-[9px] uppercase tracking-wider">Zoom.earth Scale</span>
               </div>
-              <div className="h-2.5 w-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-400 via-emerald-400 via-yellow-400 via-orange-500 to-red-600 shadow-inner"></div>
-              <div className="flex justify-between text-[9px] font-extrabold text-slate-400 mt-1">
-                <span>0°C</span>
-                <span>15°C</span>
-                <span>25°C</span>
-                <span>35°C+</span>
+              <div
+                className="h-3 w-full rounded-full shadow-inner"
+                style={{
+                  background:
+                    'linear-gradient(to right, #310a66, #581c87, #1e3a8a, #0284c7, #0d9488, #16a34a, #84cc16, #eab308, #f97316, #dc2626, #9f1239, #780a28)',
+                }}
+              ></div>
+              <div className="flex justify-between text-[8px] font-extrabold text-slate-400 mt-1">
+                <span>-30°</span>
+                <span>-15°</span>
+                <span>0°</span>
+                <span>15°</span>
+                <span>28°</span>
+                <span>38°</span>
+                <span>48°+</span>
               </div>
             </div>
           )}
