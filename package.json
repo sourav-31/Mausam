@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "build": "npm run build --workspace=frontend",
-    "postinstall": "npm run prisma:generate --prefix backend || exit 0"
+    "postinstall": "npx --yes prisma generate --schema=backend/prisma/schema.prisma || exit 0"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -16,13 +16,13 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3"
+    "jsonwebtoken": "^9.0.3",
+    "prisma": "^5.22.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^24.13.3",
-    "prisma": "^5.22.0",
     "typescript": "^5.9.3"
   }
 }
