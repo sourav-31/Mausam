@@ -110,35 +110,40 @@ export default function AuthPage() {
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-100 rounded-full blur-3xl opacity-50 z-0"></div>
 
       {/* Logo */}
-      <div className="mb-8 z-10 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-          <Cloud className="w-6 h-6 text-white" />
+      <Link to="/" className="mb-8 z-10 flex items-center gap-3 group">
+        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md shadow-blue-500/20 ring-4 ring-blue-50 group-hover:scale-105 transition-transform">
+          <Cloud className="w-5 h-5 text-white stroke-[2.2]" />
         </div>
-        <span className="text-2xl font-bold text-slate-900 tracking-tight">AetherWeather</span>
-      </div>
+        <div>
+          <span className="text-xl font-extrabold text-slate-900 tracking-tight block leading-none">
+            Mausam <span className="text-blue-600 font-bold text-xs bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/60">2.0</span>
+          </span>
+          <span className="text-[11px] font-medium text-slate-400 tracking-wide block mt-0.5">Weather Intelligence</span>
+        </div>
+      </Link>
 
       {/* Main Card */}
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 z-10">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-xs border border-slate-200/90 p-8 z-10">
         
         {/* Tab Switcher */}
-        <div className="flex bg-slate-100 p-1 rounded-xl mb-8">
+        <div className="flex bg-slate-100 p-1 rounded-lg mb-6 border border-slate-200/80">
           <button 
             type="button"
-            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${isLoginMode ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${isLoginMode ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'}`}
             onClick={() => { setIsLoginMode(true); window.history.pushState({}, '', '/login'); }}
           >
-            Login
+            Log In
           </button>
           <button 
             type="button"
-            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${!isLoginMode ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${!isLoginMode ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'}`}
             onClick={() => { setIsLoginMode(false); window.history.pushState({}, '', '/register'); }}
           >
             Sign Up
           </button>
         </div>
 
-        <h2 className="text-2xl font-bold text-slate-900 mb-6 text-center">
+        <h2 className="text-xl font-extrabold text-slate-900 mb-6 text-center tracking-tight">
           {isLoginMode ? 'Welcome back' : 'Create an account'}
         </h2>
 
@@ -151,12 +156,12 @@ export default function AuthPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLoginMode && (
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Full Name</label>
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Full Name</label>
               <input 
                 name="name"
                 type="text" 
                 placeholder="Alex Morgan"
-                className="w-full border border-slate-200 rounded-xl p-3 bg-slate-50 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm font-medium"
+                className="w-full border border-slate-200 rounded-md p-2.5 bg-slate-50/70 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm font-medium"
                 value={formData.name}
                 onChange={handleChange}
                 required={!isLoginMode}
@@ -165,12 +170,12 @@ export default function AuthPage() {
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Email Address</label>
+            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Email Address</label>
             <input 
               name="email"
               type="email" 
               placeholder="you@example.com"
-              className="w-full border border-slate-200 rounded-xl p-3 bg-slate-50 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm font-medium"
+              className="w-full border border-slate-200 rounded-md p-2.5 bg-slate-50/70 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm font-medium"
               value={formData.email}
               onChange={handleChange}
               required
@@ -178,10 +183,10 @@ export default function AuthPage() {
           </div>
 
           <div>
-            <div className="flex justify-between items-end mb-2">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Password</label>
+            <div className="flex justify-between items-end mb-1.5">
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Password</label>
               {isLoginMode && (
-                <a href="#" className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors">Forgot Password?</a>
+                <a href="#" className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors">Forgot Password?</a>
               )}
             </div>
             <div className="relative">
@@ -189,7 +194,7 @@ export default function AuthPage() {
                 name="password"
                 type={showPassword ? "text" : "password"} 
                 placeholder="••••••••"
-                className="w-full border border-slate-200 rounded-xl p-3 bg-slate-50 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm font-medium pr-10"
+                className="w-full border border-slate-200 rounded-md p-2.5 bg-slate-50/70 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm font-medium pr-10"
                 value={formData.password}
                 onChange={handleChange}
                 required
@@ -206,12 +211,12 @@ export default function AuthPage() {
 
           {!isLoginMode && (
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Confirm Password</label>
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Confirm Password</label>
               <input 
                 name="confirmPassword"
                 type={showPassword ? "text" : "password"} 
                 placeholder="••••••••"
-                className="w-full border border-slate-200 rounded-xl p-3 bg-slate-50 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm font-medium"
+                className="w-full border border-slate-200 rounded-md p-2.5 bg-slate-50/70 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm font-medium"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required={!isLoginMode}
@@ -221,21 +226,21 @@ export default function AuthPage() {
 
           <Button 
             type="submit" 
-            className="w-full py-6 mt-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all" 
+            className="w-full h-11 mt-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-md font-semibold text-sm shadow-xs hover:shadow transition-all" 
             disabled={loading}
           >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (isLoginMode ? 'Log In' : 'Create Account')}
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (isLoginMode ? 'Log In' : 'Create Account')}
           </Button>
         </form>
 
         {isLoginMode && (
           <div className="mt-8 border-t border-slate-100 pt-6">
-            <p className="text-center text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Quick Explore Demo</p>
-            <div className="grid grid-cols-2 gap-3">
-              <button onClick={() => handleDemoLogin('Student')} className="p-2 text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors">🎓 Student</button>
-              <button onClick={() => handleDemoLogin('Farmer')} className="p-2 text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors">🌾 Farmer</button>
-              <button onClick={() => handleDemoLogin('Driver')} className="p-2 text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors">🚗 Driver</button>
-              <button onClick={() => handleDemoLogin('Traveller')} className="p-2 text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors">✈️ Traveller</button>
+            <p className="text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Quick Explore Demo</p>
+            <div className="grid grid-cols-2 gap-2.5">
+              <button onClick={() => handleDemoLogin('Student')} className="p-2 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md transition-colors">🎓 Student</button>
+              <button onClick={() => handleDemoLogin('Farmer')} className="p-2 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md transition-colors">🌾 Farmer</button>
+              <button onClick={() => handleDemoLogin('Driver')} className="p-2 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md transition-colors">🚗 Driver</button>
+              <button onClick={() => handleDemoLogin('Traveller')} className="p-2 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md transition-colors">✈️ Traveller</button>
             </div>
           </div>
         )}

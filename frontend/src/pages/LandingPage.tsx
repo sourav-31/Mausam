@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Cloud, Map, Lightbulb, Wind, Settings, HelpCircle,
+  Cloud, Map, Wind, Settings, HelpCircle,
   MapPin, ChevronDown, Search, Bell, 
   Sun, Droplets, Sunrise, User, LogOut,
-  ArrowUp, ArrowDown, PlayCircle,
-  Loader2, Activity
+  ArrowUp, ArrowDown, PlayCircle, PauseCircle,
+  Loader2, Activity, Compass, ShieldCheck,
+  Sparkles, Layers
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { weatherService, type WeatherData } from '../services/weather.service';
@@ -20,6 +21,10 @@ export default function LandingPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [activeTab, setActiveTab] = useState('Dashboard');
+  const [tempUnit, setTempUnit] = useState<'C' | 'F'>('C');
+  const [radarLayer, setRadarLayer] = useState<'rain' | 'wind'>('rain');
+  const [isPlayingRadar, setIsPlayingRadar] = useState(false);
   
   const { user, logout } = useAuth();
   const { activeLocation, setActiveLocation, openLocationModal } = useLocation();
@@ -42,7 +47,7 @@ export default function LandingPage() {
       } finally {
         setIsSearching(false);
       }
-    }, 500);
+    }, 400);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
@@ -50,7 +55,7 @@ export default function LandingPage() {
   useEffect(() => {
     async function loadWeather() {
       setIsLoadingWeather(true);
-      setWeatherData(null); // clear stale data immediately
+      setWeatherData(null);
       try {
         const data = await weatherService.getForecast(
           activeLocation.latitude,
@@ -61,7 +66,7 @@ export default function LandingPage() {
         setErrorFetchingWeather(null);
       } catch (err: any) {
         console.error(err);
-        setErrorFetchingWeather(err.message || 'Unknown error');
+        setErrorFetchingWeather(err.message || 'Failed to load weather data');
       } finally {
         setIsLoadingWeather(false);
       }
@@ -75,6 +80,14 @@ export default function LandingPage() {
     setShowDropdown(false);
   };
 
+  // Unit conversion helper
+  const convertTemp = (celsius: number) => {
+    if (tempUnit === 'F') {
+      return Math.round((celsius * 9) / 5 + 32);
+    }
+    return Math.round(celsius);
+  };
+
   // Helper formatting functions
   const formatTime = (isoString: string) => {
     return new Date(isoString).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -83,10 +96,18 @@ export default function LandingPage() {
     return new Date(isoString).toLocaleTimeString([], { hour: 'numeric' });
   };
   const formatDay = (isoString: string) => {
-    return new Date(isoString).toLocaleDateString([], { weekday: 'long' });
+    return new Date(isoString).toLocaleDateString([], { weekday: 'short' });
   };
   const formatDate = (isoString: string) => {
     return new Date(isoString).toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+
+  // Dynamic greeting based on current local hour
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
   };
 
   // derived values
@@ -104,412 +125,636 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="flex h-screen bg-slate-50 text-slate-600 font-sans overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-[240px] bg-white flex flex-col justify-between border-r border-slate-200 flex-shrink-0 z-20">
-        <div className="p-6">
-          <div className="flex items-center gap-3 mb-10">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
-              <Cloud className="w-5 h-5 text-white" />
+    <div className="flex h-screen bg-[#f8fafc] text-slate-700 font-sans overflow-hidden antialiased">
+      {/* Sidebar Navigation */}
+      <aside className="hidden lg:flex w-64 bg-white flex-col justify-between border-r border-slate-200/90 shrink-0 z-20 shadow-[1px_0_4px_rgba(0,0,0,0.02)]">
+        <div className="p-5">
+          {/* Logo & Branding */}
+          <div className="flex items-center gap-3 mb-8 px-2">
+            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-md shadow-blue-500/20 shrink-0 ring-4 ring-blue-50">
+              <Cloud className="w-5 h-5 text-white stroke-[2.2]" />
             </div>
-            <span className="text-xl font-bold text-slate-900 tracking-tight truncate">AetherWeather</span>
+            <div>
+              <span className="text-lg font-extrabold text-slate-900 tracking-tight block leading-tight">
+                Mausam <span className="text-blue-600 font-bold text-xs bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/60">2.0</span>
+              </span>
+              <span className="text-[11px] font-medium text-slate-400 tracking-wide block">Weather Intelligence</span>
+            </div>
           </div>
 
-          <div className="mb-8">
-             <div
-               className="flex justify-between items-center bg-slate-100 p-3 rounded-xl mb-4 border border-slate-200 shadow-sm cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors overflow-hidden group"
-               onClick={openLocationModal}
-               title="Change location"
-             >
-               <div className="min-w-0 flex-1 pr-2">
-                 <p className="text-xs text-slate-900 font-bold mb-0.5 truncate">{activeLocation.name}</p>
-                 <p className="text-[9px] text-slate-500 font-medium truncate">{activeLocation.admin1 ? `${activeLocation.admin1}, ` : ''}{activeLocation.country_code}</p>
-               </div>
-               <MapPin className="w-4 h-4 text-blue-500 shrink-0 group-hover:scale-110 transition-transform" />
+          {/* Active Location Quick View */}
+          <div className="mb-6">
+            <div
+              className="flex justify-between items-center bg-slate-50 hover:bg-blue-50/50 p-3 rounded-xl border border-slate-200/80 hover:border-blue-300 transition-all cursor-pointer group shadow-sm"
+              onClick={openLocationModal}
+              title="Change location"
+            >
+              <div className="min-w-0 flex-1 pr-2">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <p className="text-xs text-slate-900 font-bold truncate">{activeLocation.name}</p>
+                </div>
+                <p className="text-[10px] text-slate-500 font-medium truncate">
+                  {activeLocation.admin1 ? `${activeLocation.admin1}, ` : ''}{activeLocation.country_code}
+                </p>
+              </div>
+              <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-blue-600 group-hover:border-blue-300 transition-colors shadow-xs">
+                <MapPin className="w-3.5 h-3.5" />
+              </div>
             </div>
-            
-            <nav className="space-y-1">
-              <NavItem icon={<Cloud />} label="Atmosphere" active />
-              <NavItem icon={<Map />} label="Radar Maps" />
-              <NavItem icon={<Lightbulb />} label="Smart Insights" />
-              <NavItem icon={<Wind />} label="Air & Pollen" />
-              <NavItem icon={<Settings />} label="Settings" />
-            </nav>
           </div>
 
-          <button className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl flex items-center justify-center gap-2 font-bold transition-colors text-xs shadow-lg shadow-blue-500/20">
-            <MapPin className="w-4 h-4" />
-            Live Satellite
-          </button>
+          {/* Nav Items */}
+          <nav className="space-y-1">
+            <NavItem 
+              icon={<Cloud />} 
+              label="Atmosphere" 
+              active={activeTab === 'Dashboard'} 
+              onClick={() => setActiveTab('Dashboard')} 
+            />
+            <NavItem 
+              icon={<Map />} 
+              label="Radar Maps" 
+              active={activeTab === 'Radar'} 
+              onClick={() => setActiveTab('Radar')} 
+            />
+            <NavItem 
+              icon={<Sparkles />} 
+              label="Smart Insights" 
+              active={activeTab === 'Insights'} 
+              onClick={() => setActiveTab('Insights')} 
+            />
+            <NavItem 
+              icon={<Wind />} 
+              label="Air & Pollen" 
+              active={activeTab === 'Air'} 
+              onClick={() => setActiveTab('Air')} 
+            />
+            <NavItem 
+              icon={<Compass />} 
+              label="Historic Trends" 
+              active={activeTab === 'Trends'} 
+              onClick={() => setActiveTab('Trends')} 
+            />
+          </nav>
+
+          {/* Action Trigger Card */}
+          <div className="mt-8 pt-5 border-t border-slate-100">
+            <button 
+              onClick={openLocationModal}
+              className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2 font-semibold transition-all text-xs shadow-sm hover:shadow active:scale-[0.99]"
+            >
+              <MapPin className="w-4 h-4" />
+              Change Station / GPS
+            </button>
+          </div>
         </div>
 
-        <div className="p-6 border-t border-slate-100 space-y-4">
+        {/* Sidebar Footer */}
+        <div className="p-5 border-t border-slate-100 space-y-1">
           <NavItem icon={<Settings />} label="Settings" />
-          <NavItem icon={<HelpCircle />} label="Help Center" />
+          <NavItem icon={<HelpCircle />} label="Documentation" />
         </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 bg-slate-50 relative z-10">
-        {/* Header */}
-        <header className="h-16 flex items-center justify-between px-8 border-b border-slate-200 bg-white/90 backdrop-blur-md sticky top-0 z-50 shrink-0">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 bg-[#f8fafc] relative z-10 overflow-hidden">
+        {/* Sticky Header */}
+        <header className="h-16 flex items-center justify-between px-6 lg:px-8 border-b border-slate-200/90 bg-white/95 backdrop-blur-md sticky top-0 z-40 shrink-0">
+          
+          {/* Left: Location & Quick Navigation */}
           <div className="flex items-center gap-6">
-             <button
-               onClick={openLocationModal}
-               className="flex items-center gap-2 hover:bg-slate-100 p-2 rounded-lg cursor-pointer transition-colors max-w-[200px] group"
-               title="Change location"
-             >
-               <MapPin className="w-4 h-4 text-slate-500 shrink-0 group-hover:text-blue-500 transition-colors" />
-               <span className="text-sm font-bold text-slate-800 truncate group-hover:text-blue-600 transition-colors">{activeLocation.name}</span>
-               <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
-             </button>
-             
-             <nav className="hidden md:flex items-center gap-6 text-xs font-bold text-slate-500">
-                <a href="#" className="text-slate-900 border-b-2 border-blue-600 py-5">Dashboard</a>
-                <a href="#" className="hover:text-slate-700 transition-colors py-5">Radar & Satellite</a>
-                <a href="#" className="hover:text-slate-700 transition-colors py-5">Lifestyle AI</a>
-                <a href="#" className="hover:text-slate-700 transition-colors py-5">Historic Trends</a>
-             </nav>
+            <button
+              onClick={openLocationModal}
+              className="flex items-center gap-2 hover:bg-slate-100 px-3 py-1.5 rounded-lg cursor-pointer transition-colors max-w-[240px] group border border-transparent hover:border-slate-200"
+              title="Click to search or change location"
+            >
+              <div className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-100 transition-colors">
+                <MapPin className="w-3.5 h-3.5" />
+              </div>
+              <span className="text-sm font-bold text-slate-800 truncate group-hover:text-blue-600 transition-colors">
+                {activeLocation.name}
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 shrink-0" />
+            </button>
+            
+            <nav className="hidden xl:flex items-center gap-1 text-xs font-semibold text-slate-500">
+              <button 
+                onClick={() => setActiveTab('Dashboard')}
+                className={`px-3 py-1.5 rounded-md transition-all ${activeTab === 'Dashboard' ? 'bg-slate-100 text-slate-900 font-bold' : 'hover:text-slate-800 hover:bg-slate-50'}`}
+              >
+                Dashboard
+              </button>
+              <button 
+                onClick={() => setActiveTab('Radar')}
+                className={`px-3 py-1.5 rounded-md transition-all ${activeTab === 'Radar' ? 'bg-slate-100 text-slate-900 font-bold' : 'hover:text-slate-800 hover:bg-slate-50'}`}
+              >
+                Radar & Satellite
+              </button>
+              <button 
+                onClick={() => setActiveTab('Insights')}
+                className={`px-3 py-1.5 rounded-md transition-all ${activeTab === 'Insights' ? 'bg-slate-100 text-slate-900 font-bold' : 'hover:text-slate-800 hover:bg-slate-50'}`}
+              >
+                Lifestyle AI
+              </button>
+            </nav>
           </div>
 
-          <div className="flex items-center gap-4">
-             <div className="relative group hidden lg:block">
-               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-               <input 
-                 type="text" 
-                 value={searchQuery}
-                 onChange={(e) => {
-                   setSearchQuery(e.target.value);
-                   setShowDropdown(true);
-                 }}
-                 onFocus={() => setShowDropdown(true)}
-                 placeholder="Search global stations, cities..." 
-                 className="pl-9 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-full text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-72 transition-all"
-               />
-               
-               {/* Search Dropdown */}
-               {showDropdown && searchQuery.length >= 2 && (
-                 <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden z-50 max-h-80 overflow-y-auto">
-                   {isSearching ? (
-                     <div className="p-4 flex justify-center text-slate-400"><Loader2 className="w-4 h-4 animate-spin" /></div>
-                   ) : searchResults.length > 0 ? (
-                     searchResults.map(result => (
-                       <div 
-                         key={result.id} 
-                         onClick={() => handleSelectLocation(result)}
-                         className="px-4 py-3 hover:bg-slate-50 cursor-pointer flex flex-col border-b border-slate-100 last:border-0"
-                       >
-                         <span className="text-sm font-bold text-slate-800">{result.name}</span>
-                         <span className="text-xs text-slate-500">{result.admin1 ? `${result.admin1}, ` : ''}{result.country}</span>
-                       </div>
-                     ))
-                   ) : (
-                     <div className="p-4 text-xs text-slate-500 text-center">No locations found.</div>
-                   )}
-                 </div>
-               )}
-             </div>
-             
-             <div className="flex items-center bg-slate-100 rounded-full p-1 border border-slate-200">
-               <button className="px-3 py-1 rounded-full bg-blue-600 text-white text-[10px] font-bold shadow-sm">°C</button>
-               <button className="px-3 py-1 rounded-full text-slate-500 text-[10px] font-bold hover:text-slate-700 transition-colors">°F</button>
-             </div>
-             <button className="relative p-2 rounded-full bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300 transition-all">
-               <Bell className="w-4 h-4" />
-               <span className="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full border-2 border-white"></span>
-             </button>
-             {user ? (
-               <div className="relative">
-                 <button 
-                   onClick={() => setShowProfileMenu(!showProfileMenu)}
-                   className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center border-2 border-white hover:border-slate-200 transition-all cursor-pointer shadow-sm focus:outline-none"
-                 >
-                    <span className="text-xs font-bold text-white tracking-wider">{user.name?.charAt(0).toUpperCase() || 'U'}</span>
-                 </button>
-                 
-                 {showProfileMenu && (
-                   <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-50">
-                     <div className="px-4 py-2 border-b border-slate-100 mb-1">
-                       <p className="text-sm font-bold text-slate-800 truncate">{user.name}</p>
-                       <p className="text-xs text-slate-500 truncate">{user.email}</p>
-                     </div>
-                     <button className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2 transition-colors">
-                       <User className="w-4 h-4" /> Profile
-                     </button>
-                     <button className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2 transition-colors">
-                       <Settings className="w-4 h-4" /> Settings
-                     </button>
-                     <button 
-                       onClick={() => { logout(); setShowProfileMenu(false); }}
-                       className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors border-t border-slate-100 mt-1"
-                     >
-                       <LogOut className="w-4 h-4" /> Logout
-                     </button>
-                   </div>
-                 )}
-               </div>
-             ) : (
-               <Link to="/login">
-                 <button className="px-5 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-xs font-bold rounded-full shadow-lg shadow-blue-500/20 transition-all">
-                   Login / Sign Up
-                 </button>
-               </Link>
-             )}
+          {/* Right Action Cluster */}
+          <div className="flex items-center gap-3">
+            {/* Search Input */}
+            <div className="relative group hidden md:block">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors pointer-events-none" />
+              <input 
+                type="text" 
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowDropdown(true);
+                }}
+                onFocus={() => setShowDropdown(true)}
+                placeholder="Search station, city or coordinates..." 
+                className="pl-9 pr-8 py-1.5 bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 focus:border-blue-500 rounded-md text-xs text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 w-60 lg:w-72 transition-all shadow-xs"
+              />
+              <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 hidden lg:inline-block text-[10px] font-semibold text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-xs">
+                /
+              </kbd>
+              
+              {/* Search Dropdown */}
+              {showDropdown && searchQuery.length >= 2 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden z-50 max-h-80 overflow-y-auto divide-y divide-slate-100 animate-in fade-in-50 duration-150">
+                  {isSearching ? (
+                    <div className="p-4 flex items-center justify-center gap-2 text-xs text-slate-400">
+                      <Loader2 className="w-4 h-4 animate-spin text-blue-500" /> Searching stations...
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    searchResults.map(result => (
+                      <div 
+                        key={result.id} 
+                        onClick={() => handleSelectLocation(result)}
+                        className="px-4 py-2.5 hover:bg-blue-50/60 cursor-pointer flex flex-col transition-colors group"
+                      >
+                        <span className="text-xs font-bold text-slate-800 group-hover:text-blue-600">{result.name}</span>
+                        <span className="text-[11px] text-slate-400">{result.admin1 ? `${result.admin1}, ` : ''}{result.country}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-xs text-slate-400 text-center">No location found matching "{searchQuery}"</div>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            {/* Unit Switcher: Rectangular Segmented Control */}
+            <div className="flex items-center bg-slate-100 p-0.5 rounded-md border border-slate-200">
+              <button 
+                onClick={() => setTempUnit('C')}
+                className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${tempUnit === 'C' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'}`}
+              >
+                °C
+              </button>
+              <button 
+                onClick={() => setTempUnit('F')}
+                className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${tempUnit === 'F' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'}`}
+              >
+                °F
+              </button>
+            </div>
+
+            {/* Notification Bell */}
+            <button 
+              className="relative p-2 rounded-md bg-white border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-all shadow-xs"
+              title="Weather alerts"
+            >
+              <Bell className="w-4 h-4" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-600 rounded-full ring-2 ring-white"></span>
+            </button>
+
+            {/* User Profile OR Rectangular Login/Signup Buttons */}
+            {user ? (
+              <div className="relative">
+                <button 
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  className="flex items-center gap-2 pl-2 pr-3 py-1 bg-white border border-slate-200 hover:border-slate-300 rounded-md transition-all cursor-pointer shadow-xs focus:outline-none"
+                >
+                  <div className="w-6 h-6 rounded bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                    {user.name?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <span className="text-xs font-semibold text-slate-800 max-w-[90px] truncate">{user.name.split(' ')[0]}</span>
+                  <ChevronDown className="w-3 h-3 text-slate-400" />
+                </button>
+                
+                {showProfileMenu && (
+                  <div className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-lg shadow-xl py-1 z-50 animate-in fade-in-50 duration-150">
+                    <div className="px-4 py-2.5 border-b border-slate-100">
+                      <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
+                      <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
+                    </div>
+                    <Link to="/home" className="w-full text-left px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2 transition-colors">
+                      <Sparkles className="w-3.5 h-3.5 text-blue-500" /> Personalized Hub
+                    </Link>
+                    <button className="w-full text-left px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2 transition-colors">
+                      <User className="w-3.5 h-3.5 text-slate-400" /> Account Profile
+                    </button>
+                    <button className="w-full text-left px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2 transition-colors">
+                      <Settings className="w-3.5 h-3.5 text-slate-400" /> Preferences
+                    </button>
+                    <div className="border-t border-slate-100 my-1"></div>
+                    <button 
+                      onClick={() => { logout(); setShowProfileMenu(false); }}
+                      className="w-full text-left px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                    >
+                      <LogOut className="w-3.5 h-3.5" /> Log Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* RECTANGULAR LOGIN & SIGN UP BUTTONS WITH ACCURATE POSITIONING */
+              <div className="flex items-center gap-2">
+                <Link 
+                  to="/login"
+                  className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 rounded-md transition-all shadow-xs text-center"
+                >
+                  Log In
+                </Link>
+                <Link 
+                  to="/register"
+                  className="px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-md transition-all shadow-xs hover:shadow text-center"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
           </div>
         </header>
 
-        {/* Dashboard Area */}
-        <main className="flex-1 overflow-y-auto p-8 space-y-6" onClick={() => { setShowDropdown(false); setShowProfileMenu(false); }}>
-          
+        {/* Dashboard Main Scrollable Area */}
+        <main 
+          className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-6" 
+          onClick={() => { setShowDropdown(false); setShowProfileMenu(false); }}
+        >
           {errorFetchingWeather ? (
-             <div className="w-full h-64 flex flex-col items-center justify-center text-red-500">
-               <p className="font-bold text-sm">Failed to load weather data.</p>
-               <p className="text-xs">{errorFetchingWeather}</p>
-             </div>
+            <div className="w-full h-80 flex flex-col items-center justify-center bg-white rounded-xl border border-red-200 p-6 shadow-sm text-center">
+              <div className="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center mb-3">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <p className="font-bold text-sm text-slate-800 mb-1">Failed to fetch atmospheric telemetry</p>
+              <p className="text-xs text-slate-500 max-w-md mb-4">{errorFetchingWeather}</p>
+              <button 
+                onClick={() => setActiveLocation({ ...activeLocation })} 
+                className="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-md shadow-sm hover:bg-blue-700 transition-colors"
+              >
+                Retry Connection
+              </button>
+            </div>
           ) : isLoadingWeather || !weatherData ? (
-             <div className="w-full h-64 flex flex-col items-center justify-center text-slate-400">
-               <Loader2 className="w-8 h-8 animate-spin mb-4 text-blue-500" />
-               <p className="font-bold text-sm">Syncing with orbital telemetry...</p>
-             </div>
+            <div className="w-full h-96 flex flex-col items-center justify-center bg-white rounded-xl border border-slate-200/80 p-8 shadow-sm">
+              <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
+                <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+              </div>
+              <p className="font-bold text-sm text-slate-800">Calibrating Satellite & Atmospheric Telemetry...</p>
+              <p className="text-xs text-slate-400 mt-1">Connecting to Open-Meteo & DWD regional radar feeds</p>
+            </div>
           ) : (
             <>
-              {/* Welcome Banner */}
-              <div className="bg-gradient-to-r from-blue-50 to-white rounded-2xl p-6 border border-blue-100 flex flex-col md:flex-row md:justify-between md:items-center gap-4 relative overflow-hidden shadow-sm">
+              {/* Premium Light Mode Hero Greeting Banner */}
+              <div className="bg-gradient-to-r from-blue-50/90 via-sky-50/40 to-white rounded-xl p-5 lg:p-6 border border-blue-100/90 flex flex-col md:flex-row md:justify-between md:items-center gap-4 relative overflow-hidden shadow-xs">
                 <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Good Morning, {user ? user.name.split(' ')[0] : 'Explorer'}!</h1>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200 tracking-wide uppercase">RUNNING OPTIMAL (9/10)</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200 tracking-wide uppercase hidden sm:inline-block">
-                      {weatherData.current.precipitation > 0 ? 'COMMUTE: WET' : 'COMMUTE: SMOOTH'}
+                  <div className="flex flex-wrap items-center gap-2.5 mb-2">
+                    <h1 className="text-xl lg:text-2xl font-extrabold text-slate-900 tracking-tight">
+                      {getGreeting()}, {user ? user.name.split(' ')[0] : 'Explorer'}!
+                    </h1>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 tracking-wide uppercase">
+                      RUNNING OPTIMAL (9/10)
+                    </span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200 tracking-wide uppercase hidden sm:inline-block">
+                      {weatherData.current.precipitation > 0 ? 'COMMUTE: WET ROAD' : 'COMMUTE: CLEAR'}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-600 font-medium">
-                    {weatherData.current.is_day ? 'Ideal time for outdoor activities.' : 'Evening conditions setting in.'} UV peaks at {weatherData.daily.uv_index_max[0]} today — {weatherData.current.wind_speed_10m > 15 ? 'pack a light jacket for breezy winds.' : 'enjoy the calm weather.'}
+                  <p className="text-xs lg:text-sm text-slate-600 font-medium max-w-2xl leading-relaxed">
+                    {weatherData.current.is_day ? 'Ideal outdoor conditions right now.' : 'Night conditions currently settling in.'} UV index will peak around {weatherData.daily.uv_index_max[0]} today — {weatherData.current.wind_speed_10m > 15 ? 'expect brisk breezes in exposed corridors.' : 'calm wind vector prevailing.'}
                   </p>
                 </div>
-                <div className="flex items-center gap-4 text-right relative z-10 shrink-0">
-                  <div className="hidden sm:block">
-                    <p className="text-[10px] text-emerald-600 font-bold flex items-center gap-1 justify-end uppercase tracking-wider mb-0.5"><Activity className="w-3 h-3" /> Updated just now</p>
-                    <p className="text-[11px] text-slate-500 font-medium">{activeLocation.name} Station</p>
+
+                <div className="flex items-center gap-3 shrink-0 relative z-10">
+                  <div className="hidden sm:block text-right">
+                    <p className="text-[10px] text-emerald-600 font-bold flex items-center gap-1 justify-end uppercase tracking-wider mb-0.5">
+                      <Activity className="w-3 h-3" /> Live Station Sync
+                    </p>
+                    <p className="text-[11px] text-slate-400 font-medium">{activeLocation.name}</p>
                   </div>
-                  <button className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 rounded-lg flex items-center gap-2 text-xs font-bold border border-slate-200 transition-colors shadow-sm">
-                     <Wind className="w-4 h-4 text-blue-500" /> Full Briefing
+                  <button 
+                    onClick={openLocationModal}
+                    className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-md flex items-center gap-2 text-xs font-semibold border border-slate-200 transition-all shadow-xs"
+                  >
+                    <Wind className="w-3.5 h-3.5 text-blue-500" /> Switch Station
                   </button>
                 </div>
               </div>
 
-              {/* Grid 1 */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Current Weather Card */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 flex flex-col justify-between shadow-lg shadow-slate-200/50">
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-3 text-slate-700">
-                      <div className="text-blue-500">
-                        {getWeatherIcon(weatherData.current.weather_code, "w-6 h-6", weatherData.current.is_day === 1)}
+              {/* Grid 1: Current Weather Card & Doppler Radar Card */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                {/* Current Conditions Card (5 cols) */}
+                <div className="lg:col-span-6 bg-white rounded-xl p-6 border border-slate-200/90 flex flex-col justify-between shadow-xs hover:border-slate-300 transition-all">
+                  <div>
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-xs">
+                          {getWeatherIcon(weatherData.current.weather_code, "w-6 h-6", weatherData.current.is_day === 1)}
+                        </div>
+                        <div>
+                          <span className="font-bold text-base text-slate-900 block leading-tight">
+                            {getWeatherDescription(weatherData.current.weather_code)}
+                          </span>
+                          <span className="text-[11px] font-medium text-slate-400">
+                            {activeLocation.name}, {activeLocation.country_code}
+                          </span>
+                        </div>
                       </div>
-                      <span className="font-bold text-sm tracking-wide text-slate-900">{getWeatherDescription(weatherData.current.weather_code)}</span>
+                      
+                      <div className="px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-700 flex items-center gap-1.5">
+                        <Activity className="w-3.5 h-3.5 text-emerald-500" /> 
+                        <span>{weatherData.hourly.precipitation_probability[currentHourIndex]}% Rain Risk</span>
+                      </div>
                     </div>
-                    <div className="px-2 py-1 rounded-md bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-600 flex items-center gap-1 tracking-wider uppercase">
-                       <Activity className="w-3 h-3 text-emerald-500" /> {weatherData.hourly.precipitation_probability[currentHourIndex]}% Rain Prob.
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-end gap-6 mt-6 mb-8">
-                    <h2 className="text-7xl font-bold text-slate-900 tracking-tighter leading-none">{Math.round(weatherData.current.temperature_2m)}°</h2>
-                    <div className="pb-2">
-                      <p className="text-sm text-slate-500 font-bold tracking-wide">Feels like <span className="text-slate-900">{Math.round(weatherData.current.apparent_temperature)}°</span></p>
-                      <div className="flex items-center gap-3 text-sm font-bold mt-1.5">
-                        <span className="text-orange-500 flex items-center"><ArrowUp className="w-3 h-3 mr-0.5 stroke-[3]"/> {Math.round(weatherData.daily.temperature_2m_max[0])}°</span>
-                        <span className="text-blue-500 flex items-center"><ArrowDown className="w-3 h-3 mr-0.5 stroke-[3]"/> {Math.round(weatherData.daily.temperature_2m_min[0])}°</span>
+
+                    {/* Temperature hero */}
+                    <div className="flex items-baseline gap-4 my-4">
+                      <h2 className="text-6xl font-extrabold text-slate-900 tracking-tighter">
+                        {convertTemp(weatherData.current.temperature_2m)}°
+                      </h2>
+                      <div className="flex flex-col">
+                        <span className="text-xs text-slate-500 font-semibold">
+                          Feels like <strong className="text-slate-800">{convertTemp(weatherData.current.apparent_temperature)}°{tempUnit}</strong>
+                        </span>
+                        <div className="flex items-center gap-3 text-xs font-bold mt-1">
+                          <span className="text-amber-600 flex items-center bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/60">
+                            <ArrowUp className="w-3 h-3 mr-0.5 stroke-[2.5]" /> 
+                            {convertTemp(weatherData.daily.temperature_2m_max[0])}°
+                          </span>
+                          <span className="text-blue-600 flex items-center bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/60">
+                            <ArrowDown className="w-3 h-3 mr-0.5 stroke-[2.5]" /> 
+                            {convertTemp(weatherData.daily.temperature_2m_min[0])}°
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
+                  {/* Atmospheric barometric scale */}
                   <div className="pt-6 border-t border-slate-100">
-                    <div className="flex justify-between items-center text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">
-                      <span className="flex items-center gap-1.5"><Cloud className="w-3.5 h-3.5 text-slate-400"/> Barometer Pressure</span>
-                      <span className="text-slate-900 flex items-center gap-2">{weatherData.hourly.pressure_msl[currentHourIndex]} hPa <span className="text-emerald-600">(Steady)</span></span>
+                    <div className="flex justify-between items-center text-xs font-semibold text-slate-500 mb-2">
+                      <span className="flex items-center gap-1.5">
+                        <Cloud className="w-3.5 h-3.5 text-slate-400" /> Barometric Pressure
+                      </span>
+                      <span className="text-slate-800 font-bold">
+                        {weatherData.hourly.pressure_msl[currentHourIndex]} hPa 
+                        <span className="text-emerald-600 font-medium ml-1.5">(Stable)</span>
+                      </span>
                     </div>
-                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-blue-500 via-emerald-400 to-orange-400 w-[65%] rounded-full shadow-sm"></div>
+                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-blue-500 via-emerald-400 to-amber-500 w-[65%] rounded-full"></div>
                     </div>
-                    <div className="flex justify-between text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">
-                      <span>980 - Low</span>
-                      <span className="text-emerald-600">1013 - Steady</span>
-                      <span>1050 - High</span>
+                    <div className="flex justify-between text-[10px] font-semibold text-slate-400 mt-2 uppercase tracking-wide">
+                      <span>980 Low</span>
+                      <span className="text-emerald-600 font-bold">1013 Standard</span>
+                      <span>1040 High</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Radar Map Card - Keep this static map driven as placeholder */}
-                <div className="bg-slate-100 rounded-2xl border border-slate-200 flex flex-col overflow-hidden relative min-h-[280px] shadow-lg shadow-slate-200/50">
-                  <div className="absolute inset-0 bg-slate-50 z-0"></div>
-                  
-                  <div className="relative z-10 p-4 flex justify-between items-start bg-white/80 backdrop-blur-md border-b border-slate-200/50">
+                {/* Regional Doppler Radar Simulator Card (7 cols) */}
+                <div className="lg:col-span-6 bg-white rounded-xl border border-slate-200/90 flex flex-col overflow-hidden shadow-xs hover:border-slate-300 transition-all">
+                  <div className="p-4 flex justify-between items-center bg-white border-b border-slate-100">
                     <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-sm"></div>
-                      <span className="text-xs font-bold text-slate-900 tracking-wide">Regional Doppler Radar</span>
-                      <span className="px-1.5 py-0.5 rounded bg-red-100 text-[9px] font-bold text-red-600 border border-red-200 ml-2 tracking-wider">LIVE</span>
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                      </span>
+                      <span className="text-xs font-bold text-slate-900 tracking-tight">Regional Doppler Radar</span>
+                      <span className="px-1.5 py-0.5 rounded bg-red-50 text-[10px] font-bold text-red-600 border border-red-200/80">LIVE</span>
                     </div>
-                    <div className="flex bg-slate-100 rounded-lg p-0.5 border border-slate-200 shadow-sm">
-                      <button className="px-3 py-1.5 rounded-md bg-white text-slate-900 text-[10px] font-bold shadow-sm border border-slate-200">Rain</button>
-                      <button className="px-3 py-1.5 rounded-md text-slate-500 text-[10px] font-bold hover:text-slate-800 transition-colors">Wind</button>
+                    
+                    {/* Layer toggle buttons */}
+                    <div className="flex bg-slate-100 rounded-md p-0.5 border border-slate-200">
+                      <button 
+                        onClick={() => setRadarLayer('rain')}
+                        className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-all ${radarLayer === 'rain' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'}`}
+                      >
+                        Precipitation
+                      </button>
+                      <button 
+                        onClick={() => setRadarLayer('wind')}
+                        className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-all ${radarLayer === 'wind' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'}`}
+                      >
+                        Wind Stream
+                      </button>
                     </div>
                   </div>
                   
-                  {/* Radar Placeholder Image or Map container */}
-                  <div className="flex-1 relative z-10 flex items-center justify-center overflow-hidden">
-                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=800&auto=format&fit=crop')] bg-cover bg-center opacity-10 mix-blend-multiply scale-110 grayscale"></div>
-                    <div className="absolute inset-0 bg-blue-50/50"></div>
+                  {/* Radar Visual Canvas Container */}
+                  <div className="flex-1 relative min-h-[220px] bg-slate-50 flex items-center justify-center overflow-hidden">
+                    {/* Grid overlay */}
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:2rem_2rem] opacity-40"></div>
                     
-                    <svg viewBox="0 0 400 200" className="w-full h-full absolute inset-0 z-20 opacity-80" preserveAspectRatio="none">
-                       <path d="M80,40 Q150,150 220,70 T320,130" fill="none" stroke="rgba(16,185,129,0.8)" strokeWidth="20" filter="blur(6px)" />
-                       <path d="M100,50 Q160,130 200,80 T290,120" fill="none" stroke="rgba(234,179,8,0.9)" strokeWidth="12" filter="blur(3px)" />
-                       <circle cx="200" cy="80" r="3" fill="#1e293b" />
-                       <circle cx="200" cy="80" r="10" fill="none" stroke="#1e293b" strokeWidth="1.5" strokeDasharray="2 2" className="animate-spin-slow" />
+                    {/* Map illustration background */}
+                    <svg viewBox="0 0 500 240" className="w-full h-full absolute inset-0 z-10 opacity-70" preserveAspectRatio="none">
+                      {/* Radar sweep lines */}
+                      <circle cx="250" cy="120" r="40" fill="none" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="3 3" />
+                      <circle cx="250" cy="120" r="90" fill="none" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="3 3" />
+                      <circle cx="250" cy="120" r="140" fill="none" stroke="#cbd5e1" strokeWidth="1" />
+                      
+                      {/* Weather cell echoes */}
+                      <path d="M120,60 Q200,160 300,90 T420,150" fill="none" stroke="rgba(59, 130, 246, 0.45)" strokeWidth="32" filter="blur(8px)" />
+                      <path d="M150,70 Q240,150 280,100 T380,140" fill="none" stroke="rgba(16, 185, 129, 0.55)" strokeWidth="20" filter="blur(5px)" />
+                      <path d="M220,110 Q260,130 310,110" fill="none" stroke="rgba(245, 158, 11, 0.6)" strokeWidth="10" filter="blur(3px)" />
+                      
+                      {/* Station center pin */}
+                      <circle cx="250" cy="120" r="4" fill="#2563eb" />
+                      <circle cx="250" cy="120" r="12" fill="none" stroke="#2563eb" strokeWidth="1.5" className="animate-ping opacity-30" />
                     </svg>
 
-                    <div className="absolute right-4 top-4 flex flex-col gap-1 z-30">
-                      <button className="w-7 h-7 rounded bg-white/90 backdrop-blur-md border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm"><span className="text-lg leading-none mt-[-2px]">+</span></button>
-                      <button className="w-7 h-7 rounded bg-white/90 backdrop-blur-md border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm"><span className="text-lg leading-none mt-[-2px]">-</span></button>
+                    {/* Controls overlay */}
+                    <div className="absolute right-3 top-3 flex flex-col gap-1 z-20">
+                      <button className="w-7 h-7 rounded-md bg-white border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-50 shadow-xs font-bold text-sm">
+                        +
+                      </button>
+                      <button className="w-7 h-7 rounded-md bg-white border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-50 shadow-xs font-bold text-sm">
+                        -
+                      </button>
+                    </div>
+
+                    <div className="absolute bottom-3 left-4 z-20">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded border border-slate-200 shadow-xs">
+                        RADAR ID: {activeLocation.name.toUpperCase().substring(0, 4)}-DOPPLER
+                      </span>
                     </div>
                   </div>
 
-                  {/* Radar Timeline Footer */}
-                  <div className="relative z-20 p-4 bg-white/90 backdrop-blur-md border-t border-slate-200 flex items-end gap-4 pb-4">
-                    <button className="p-1 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-md shrink-0">
-                      <PlayCircle className="w-6 h-6 fill-blue-600 text-white" />
+                  {/* Radar Timeline Player */}
+                  <div className="p-3 bg-white border-t border-slate-100 flex items-center gap-3">
+                    <button 
+                      onClick={() => setIsPlayingRadar(!isPlayingRadar)}
+                      className="p-1 rounded-md text-blue-600 hover:bg-blue-50 transition-colors shrink-0"
+                      title={isPlayingRadar ? "Pause radar" : "Play radar"}
+                    >
+                      {isPlayingRadar ? <PauseCircle className="w-6 h-6" /> : <PlayCircle className="w-6 h-6" />}
                     </button>
-                    <div className="flex-1 flex flex-col gap-1.5 mb-1">
-                      <div className="flex justify-between text-[10px] font-bold text-slate-500 px-1 tracking-widest uppercase">
+                    
+                    <div className="flex-1 flex flex-col gap-1">
+                      <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                         <span>-45 min</span>
-                        <span className="text-blue-600">LIVE</span>
-                        <span>+60 min</span>
+                        <span className="text-blue-600 font-extrabold">NOW (LIVE)</span>
+                        <span>+60 min forecast</span>
                       </div>
-                      <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden border border-slate-300">
-                        <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 w-1/2 rounded-full relative">
-                          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-sm border border-blue-500"></div>
-                        </div>
+                      <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-600 w-3/5 rounded-full relative"></div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Hourly Outlook */}
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-lg shadow-slate-200/50 overflow-hidden flex flex-col relative z-0">
-                <div className="flex justify-between items-center mb-6 shrink-0">
-                  <div className="flex items-center gap-2 text-sm font-bold text-slate-900 tracking-wide">
-                    <Activity className="w-4 h-4 text-blue-500" /> Hourly Outlook 
-                    <span className="text-slate-400 font-medium ml-2 text-xs hidden sm:inline-block">— Next 24 Hours</span>
+              {/* 24-Hour Outlook Section */}
+              <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs">
+                <div className="flex justify-between items-center mb-5">
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-blue-600" />
+                    <h3 className="text-sm font-bold text-slate-900 tracking-tight">Hourly Chronology</h3>
+                    <span className="text-slate-400 font-medium text-xs hidden sm:inline-block">— Next 24 Hours Microforecast</span>
                   </div>
-                  <div className="flex items-center gap-4 text-[11px] font-bold tracking-wider uppercase">
-                    <span className="flex items-center gap-1.5 text-slate-500"><span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm"></span> Temp</span>
-                    <span className="flex items-center gap-1.5 text-slate-500"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"></span> Rain %</span>
+                  <div className="flex items-center gap-4 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-blue-600"></span> Temp</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Precip %</span>
                   </div>
                 </div>
 
-                <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
+                {/* Horizontal Hourly Scroller */}
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-200">
                   {Array.from({ length: 24 }).map((_, i) => {
                     const idx = currentHourIndex + i;
                     if (idx >= weatherData.hourly.time.length) return null;
                     const hTime = weatherData.hourly.time[idx];
                     const isNow = i === 0;
                     
-                    // Determine if day for icon mapping in hourly (simple check based on time for now, or use `is_day` if we had it per hour)
                     const hourDate = new Date(hTime);
-                    const isDayHour = hourDate.getHours() > 6 && hourDate.getHours() < 19; 
+                    const isDayHour = hourDate.getHours() >= 6 && hourDate.getHours() <= 19;
 
                     return (
-                      <HourlyItem 
+                      <div 
                         key={idx}
-                        time={isNow ? "NOW" : formatHour(hTime)} 
-                        temp={`${Math.round(weatherData.hourly.temperature_2m[idx])}°`} 
-                        icon={getWeatherIcon(weatherData.hourly.weather_code?.[idx] || 0, `w-7 h-7 drop-shadow-sm ${isDayHour ? 'text-yellow-500 fill-yellow-400' : 'text-slate-400 fill-slate-300'}`, isDayHour)} 
-                        rain={`${weatherData.hourly.precipitation_probability[idx]}%`} 
-                        wind={`${Math.round(weatherData.hourly.wind_speed_10m[idx])}mph`} 
-                        active={isNow} 
-                      />
+                        className={`min-w-[84px] flex flex-col items-center p-3.5 rounded-xl border transition-all cursor-pointer ${
+                          isNow 
+                            ? 'bg-blue-50/70 border-blue-300 shadow-xs ring-1 ring-blue-400/20' 
+                            : 'bg-white border-slate-200/80 hover:bg-slate-50 hover:border-slate-300'
+                        }`}
+                      >
+                        <span className={`text-[11px] font-bold mb-2 uppercase tracking-wide ${isNow ? 'text-blue-700' : 'text-slate-400'}`}>
+                          {isNow ? "NOW" : formatHour(hTime)}
+                        </span>
+                        
+                        <div className="my-2 shrink-0">
+                          {getWeatherIcon(
+                            weatherData.hourly.weather_code?.[idx] || 0, 
+                            `w-6 h-6 ${isDayHour ? 'text-amber-500' : 'text-slate-400'}`, 
+                            isDayHour
+                          )}
+                        </div>
+                        
+                        <span className={`text-sm font-extrabold mb-3 ${isNow ? 'text-blue-900' : 'text-slate-800'}`}>
+                          {convertTemp(weatherData.hourly.temperature_2m[idx])}°
+                        </span>
+                        
+                        <div className="w-full space-y-1 text-center pt-1 border-t border-slate-100">
+                          <p className="text-[10px] font-bold text-emerald-600">
+                            {weatherData.hourly.precipitation_probability[idx]}%
+                          </p>
+                          <p className="text-[10px] font-semibold text-slate-400">
+                            {Math.round(weatherData.hourly.wind_speed_10m[idx])}km/h
+                          </p>
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Lifestyle & Routing Intelligence headers */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-500 tracking-widest uppercase">
-                  <Activity className="w-4 h-4 text-emerald-500" /> Lifestyle & Routine Intelligence
-                </div>
-                <div className="hidden lg:flex items-center gap-2 text-xs font-bold text-slate-500 tracking-widest uppercase">
-                  <Wind className="w-4 h-4 text-blue-500" /> Atmospheric Telemetry
-                </div>
+              {/* Lifestyle & Atmospheric Intelligence Header */}
+              <div className="flex items-center gap-2 pt-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <ShieldCheck className="w-4 h-4 text-blue-600" />
+                <span>Environmental & Lifestyle Telemetry</span>
               </div>
 
-              {/* Intelligence Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              {/* Intelligence 4-Card Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* UV Index */}
                 <InfoCard 
-                  title="UV Protection" 
+                  title="UV Radiation Index" 
                   icon={<Sun />} 
                   value={`Index ${weatherData.daily.uv_index_max[0]}`} 
                   label={weatherData.daily.uv_index_max[0] > 7 ? 'High' : weatherData.daily.uv_index_max[0] > 3 ? 'Moderate' : 'Low'} 
-                  desc="Peak UV index for the day. Protect skin if outdoors for extended periods." 
-                  color="yellow" 
-                  barValue={(weatherData.daily.uv_index_max[0] / 11) * 100} 
+                  desc="Peak solar index expected midday. Apply SPF 30+ if outdoors." 
+                  color={weatherData.daily.uv_index_max[0] > 7 ? 'orange' : 'emerald'} 
+                  barValue={Math.min(100, (weatherData.daily.uv_index_max[0] / 11) * 100)} 
                 />
+
+                {/* Sunset & Daylight */}
                 <InfoCard 
-                  title="Sunset & Solar" 
+                  title="Daylight & Sunset" 
                   icon={<Sunrise />} 
                   value={formatTime(weatherData.daily.sunset[0])} 
                   label="Sunset" 
-                  desc={`Sunrise was at ${formatTime(weatherData.daily.sunrise[0])}. Enjoy the daylight.`} 
-                  color="orange" 
+                  desc={`Sunrise was recorded at ${formatTime(weatherData.daily.sunrise[0])}. Clear dusk expected.`} 
+                  color="blue" 
                 />
-                
-                <div className="hidden md:block col-span-2 lg:hidden">
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-500 tracking-widest uppercase mb-4 mt-2">
-                    <Wind className="w-4 h-4 text-blue-500" /> Atmospheric Telemetry
-                  </div>
-                </div>
 
+                {/* Wind Vectors */}
                 <InfoCard 
-                  title="Wind & Gusts" 
+                  title="Wind Speed & Gusts" 
                   icon={<Wind />} 
                   value={`${Math.round(weatherData.current.wind_speed_10m)} km/h`} 
-                  label={`Gusts to ${Math.round(weatherData.current.wind_gusts_10m)}`} 
-                  desc="Current wind speeds and peak gusts recorded recently." 
+                  label={`Gusts ${Math.round(weatherData.current.wind_gusts_10m)} km/h`} 
+                  desc="Atmospheric surface wind velocity. Normal aerodynamic conditions." 
                   color="blue" 
                 />
+
+                {/* Humidity & Dew Point */}
                 <InfoCard 
-                  title="Humidity & Dew" 
+                  title="Relative Humidity" 
                   icon={<Droplets />} 
                   value={`${weatherData.current.relative_humidity_2m}%`} 
-                  label={`Dew ${Math.round(weatherData.hourly.dew_point_2m[currentHourIndex])}°`} 
-                  desc="Relative humidity and dew point for comfort tracking." 
-                  color="blue" 
+                  label={`Dew ${convertTemp(weatherData.hourly.dew_point_2m[currentHourIndex])}°${tempUnit}`} 
+                  desc="Surface moisture saturation. Comfortable ambient air quality." 
+                  color="emerald" 
                   barValue={weatherData.current.relative_humidity_2m} 
                 />
               </div>
 
-              {/* 7-Day Forecast */}
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-lg shadow-slate-200/50">
+              {/* 7-Day Extended Microclimate Forecast */}
+              <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs">
                 <div className="flex justify-between items-center mb-6">
-                   <div className="flex items-center gap-2 text-sm font-bold text-slate-900 tracking-wide">
-                     <Settings className="w-4 h-4 text-indigo-500" /> 7-Day Extended Microclimate Forecast
-                   </div>
-                   <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:block">
-                     NOAA Ensemble Data / Mixed
-                   </div>
+                  <div className="flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-blue-600" />
+                    <h3 className="text-sm font-bold text-slate-900 tracking-tight">7-Day Extended Outlook</h3>
+                  </div>
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider hidden sm:inline-block">
+                    NOAA & ECMWF Ensemble Consensus
+                  </span>
                 </div>
 
                 <div className="space-y-1">
-                  <div className="grid grid-cols-12 text-[10px] font-bold text-slate-400 uppercase tracking-wider pb-3 border-b border-slate-100 mb-2">
+                  {/* Table Header */}
+                  <div className="grid grid-cols-12 text-[10px] font-bold text-slate-400 uppercase tracking-wider pb-3 border-b border-slate-100">
                     <div className="col-span-3 sm:col-span-2">Day</div>
-                    <div className="col-span-4 sm:col-span-4">Conditions</div>
+                    <div className="col-span-4 sm:col-span-4">Atmosphere</div>
                     <div className="col-span-2 text-center">Precipitation</div>
-                    <div className="col-span-2 text-center hidden sm:block">Wind Max</div>
-                    <div className="col-span-3 sm:col-span-2 text-right">Thermal Spectrum <span className="hidden sm:inline">(Min/Max)</span></div>
+                    <div className="col-span-2 text-center hidden sm:block">Max Gusts</div>
+                    <div className="col-span-3 sm:col-span-2 text-right">Thermal Spectrum</div>
                   </div>
                   
+                  {/* Rows */}
                   {weatherData.daily.time.map((time, i) => {
                     const minTemp = weatherData.daily.temperature_2m_min[i];
                     const maxTemp = weatherData.daily.temperature_2m_max[i];
@@ -519,31 +764,65 @@ export default function LandingPage() {
                     const barEnd = 100 - (((maxTemp - minWeekTemp) / range) * 100);
 
                     return (
-                      <ForecastRow 
+                      <div 
                         key={time}
-                        day={i === 0 ? "Today" : formatDay(time)} 
-                        date={formatDate(time).toUpperCase()} 
-                        icon={getWeatherIcon(weatherData.daily.weather_code[i], "w-5 h-5 drop-shadow-sm text-slate-500", true)} 
-                        desc={getWeatherDescription(weatherData.daily.weather_code[i])} 
-                        precip={`${Math.round(weatherData.daily.precipitation_sum[i])}mm`} 
-                        hum={`${Math.round(weatherData.daily.wind_speed_10m_max[i])} km/h`} 
-                        min={`${Math.round(minTemp)}°`} 
-                        max={`${Math.round(maxTemp)}°`} 
-                        barStart={barStart} 
-                        barEnd={barEnd} 
-                      />
+                        className="grid grid-cols-12 items-center py-3.5 border-b border-slate-100 last:border-0 hover:bg-slate-50/80 rounded-lg px-2 -mx-2 transition-colors cursor-pointer group"
+                      >
+                        <div className="col-span-3 sm:col-span-2 flex flex-col">
+                          <span className="text-xs font-bold text-slate-800 group-hover:text-blue-600 transition-colors">
+                            {i === 0 ? "Today" : formatDay(time)}
+                          </span>
+                          <span className="text-[10px] font-medium text-slate-400">{formatDate(time)}</span>
+                        </div>
+
+                        <div className="col-span-4 sm:col-span-4 flex items-center gap-3">
+                          <div className="shrink-0">
+                            {getWeatherIcon(weatherData.daily.weather_code[i], "w-5 h-5 text-slate-500", true)}
+                          </div>
+                          <span className="text-xs font-medium text-slate-700 truncate pr-2">
+                            {getWeatherDescription(weatherData.daily.weather_code[i])}
+                          </span>
+                        </div>
+
+                        <div className="col-span-2 text-center text-xs font-bold text-emerald-600">
+                          {Math.round(weatherData.daily.precipitation_sum[i])} mm
+                        </div>
+
+                        <div className="col-span-2 text-center text-xs font-medium text-slate-500 hidden sm:block">
+                          {Math.round(weatherData.daily.wind_speed_10m_max[i])} km/h
+                        </div>
+
+                        <div className="col-span-3 sm:col-span-2 flex items-center justify-end gap-2.5">
+                          <span className="text-xs font-medium text-slate-400 w-6 text-right">
+                            {convertTemp(minTemp)}°
+                          </span>
+                          <div className="w-14 sm:w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden relative border border-slate-200/60 shrink-0">
+                            <div 
+                              className="absolute h-full rounded-full bg-gradient-to-r from-blue-400 via-emerald-400 to-amber-400" 
+                              style={{ left: `${Math.max(0, barStart)}%`, right: `${Math.max(0, barEnd)}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-xs font-bold text-slate-800 w-6 text-left">
+                            {convertTemp(maxTemp)}°
+                          </span>
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
               </div>
               
-              <div className="flex flex-col sm:flex-row justify-between items-center pt-8 pb-4 border-t border-slate-200 text-[10px] text-slate-400 font-bold uppercase tracking-wider gap-4">
-                 <p>Aether Weather Engine — Telemetry Processed by Open-Meteo & DWD API</p>
-                 <div className="flex gap-6">
-                   <span className="hover:text-slate-600 cursor-pointer transition-colors">API Status</span>
-                   <span className="hover:text-slate-600 cursor-pointer transition-colors">Station Log</span>
-                   <span className="hover:text-slate-600 cursor-pointer transition-colors">Privacy</span>
-                 </div>
+              {/* Telemetry Footer */}
+              <div className="flex flex-col sm:flex-row justify-between items-center pt-6 pb-2 border-t border-slate-200 text-[11px] text-slate-400 font-medium gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span>Mausam 2.0 Weather Intelligence — Open-Meteo & DWD Real-Time Telemetry</span>
+                </div>
+                <div className="flex items-center gap-5">
+                  <span className="hover:text-slate-600 cursor-pointer transition-colors">Sensor Status: 100%</span>
+                  <span className="hover:text-slate-600 cursor-pointer transition-colors">API Latency: 42ms</span>
+                  <span className="hover:text-slate-600 cursor-pointer transition-colors">Privacy & Terms</span>
+                </div>
               </div>
             </>
           )}
@@ -554,103 +833,89 @@ export default function LandingPage() {
 }
 
 // Sub-components
-function NavItem({ icon, label, active = false }: { icon: React.ReactNode, label: string, active?: boolean }) {
+function NavItem({ 
+  icon, 
+  label, 
+  active = false, 
+  onClick 
+}: { 
+  icon: React.ReactNode; 
+  label: string; 
+  active?: boolean; 
+  onClick?: () => void;
+}) {
   return (
-    <a href="#" className={`flex items-center gap-3 px-3 py-3 rounded-xl text-[13px] font-bold transition-all ${active ? 'bg-blue-50 text-blue-600 border border-blue-100 shadow-sm' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 border border-transparent'}`}>
+    <button 
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all ${
+        active 
+          ? 'bg-blue-50 text-blue-700 border border-blue-200/70 shadow-xs' 
+          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'
+      }`}
+    >
       <div className={`${active ? 'text-blue-600' : 'text-slate-400'}`}>
         {React.cloneElement(icon as React.ReactElement<any>, { className: 'w-4 h-4' })}
       </div>
-      {label}
-    </a>
+      <span>{label}</span>
+    </button>
   );
 }
 
-function HourlyItem({ time, temp, icon, rain, wind, active = false }: { time: string, temp: string, icon: React.ReactNode, rain: string, wind: string, active?: boolean }) {
-  return (
-    <div className={`min-w-[80px] flex flex-col items-center p-4 rounded-2xl border ${active ? 'bg-blue-50 border-blue-200 shadow-md ring-1 ring-blue-500/10' : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm'} transition-all cursor-pointer`}>
-      <span className={`text-[11px] font-bold mb-3 uppercase tracking-wider ${active ? 'text-blue-700' : 'text-slate-400'}`}>{time}</span>
-      <div className="mb-3 shrink-0">
-        {icon}
-      </div>
-      <span className={`text-base font-bold mb-4 ${active ? 'text-blue-900' : 'text-slate-900'}`}>{temp}</span>
-      <div className="w-full space-y-2">
-        <div className="flex items-center justify-between text-[10px] font-bold text-emerald-600">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-sm shrink-0 mr-1"></span>
-          <span>{rain}</span>
-        </div>
-        <div className="flex items-center justify-between text-[10px] font-bold text-blue-500">
-          <Wind className="w-3 h-3 shrink-0 mr-1" />
-          <span>{wind}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function InfoCard({ title, icon, value, label, desc, color, barValue }: { title: string, icon: React.ReactNode, value: string, label: string, desc: string, color: 'emerald' | 'blue' | 'yellow' | 'orange', barValue?: number }) {
-  const colorMap = {
-    emerald: 'text-emerald-600',
-    blue: 'text-blue-600',
-    yellow: 'text-yellow-600',
-    orange: 'text-orange-600'
+function InfoCard({ 
+  title, 
+  icon, 
+  value, 
+  label, 
+  desc, 
+  color, 
+  barValue 
+}: { 
+  title: string; 
+  icon: React.ReactNode; 
+  value: string; 
+  label: string; 
+  desc: string; 
+  color: 'emerald' | 'blue' | 'yellow' | 'orange'; 
+  barValue?: number;
+}) {
+  const colorTextMap = {
+    emerald: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+    blue: 'text-blue-700 bg-blue-50 border-blue-200',
+    yellow: 'text-amber-700 bg-amber-50 border-amber-200',
+    orange: 'text-orange-700 bg-orange-50 border-orange-200'
   };
-  const bgMap = {
+  const barBgMap = {
     emerald: 'bg-emerald-500',
     blue: 'bg-blue-500',
-    yellow: 'bg-yellow-400',
+    yellow: 'bg-amber-400',
     orange: 'bg-orange-500'
   };
 
   return (
-    <div className="bg-white rounded-2xl p-5 border border-slate-200 flex flex-col justify-between shadow-md shadow-slate-200/50 hover:border-slate-300 hover:shadow-lg transition-all cursor-default">
+    <div className="bg-white rounded-xl p-5 border border-slate-200/90 flex flex-col justify-between shadow-xs hover:border-slate-300 transition-all">
       <div>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">{title}</h3>
-          <div className="w-6 h-6 rounded-md bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 shadow-sm shrink-0">
-             {React.cloneElement(icon as React.ReactElement<any>, { className: 'w-3.5 h-3.5' })}
+        <div className="flex justify-between items-center mb-3">
+          <h4 className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">{title}</h4>
+          <div className="w-6 h-6 rounded-md bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+            {React.cloneElement(icon as React.ReactElement<any>, { className: 'w-3.5 h-3.5' })}
           </div>
         </div>
+        
         <div className="flex items-baseline gap-2 mb-1.5">
-          <span className="text-2xl font-bold text-slate-900 tracking-tight">{value}</span>
-          <span className={`text-[11px] font-bold tracking-wide uppercase ${colorMap[color]}`}>{label}</span>
+          <span className="text-xl font-extrabold text-slate-900 tracking-tight">{value}</span>
+          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wide ${colorTextMap[color]}`}>
+            {label}
+          </span>
         </div>
-        <p className="text-[12px] text-slate-500 leading-relaxed font-medium mb-4">{desc}</p>
+        
+        <p className="text-xs text-slate-500 leading-relaxed font-normal mb-4">{desc}</p>
       </div>
+
       {barValue !== undefined && (
-        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden mt-auto border border-slate-200/50">
-          <div className={`h-full ${bgMap[color]} rounded-full`} style={{ width: `${barValue}%` }}></div>
+        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden mt-auto">
+          <div className={`h-full ${barBgMap[color]} rounded-full`} style={{ width: `${barValue}%` }}></div>
         </div>
       )}
     </div>
   );
 }
-
-function ForecastRow({ day, date, icon, desc, precip, hum, min, max, barStart, barEnd }: { day: string, date: string, icon: React.ReactNode, desc: string, precip: string, hum: string, min: string, max: string, barStart: number, barEnd: number }) {
-  return (
-    <div className="grid grid-cols-12 items-center py-3.5 border-b border-slate-100 last:border-0 hover:bg-slate-50 rounded-xl px-3 -mx-3 transition-colors cursor-pointer group">
-      <div className="col-span-3 sm:col-span-2 flex flex-col gap-0.5">
-        <span className="text-[13px] font-bold text-slate-800 group-hover:text-slate-900 transition-colors">{day}</span>
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{date}</span>
-      </div>
-      <div className="col-span-4 sm:col-span-4 flex items-center gap-4">
-        <div className="w-8 h-8 flex items-center justify-center shrink-0">
-          {icon}
-        </div>
-        <span className="text-[13px] font-bold text-slate-700 group-hover:text-slate-900 truncate pr-2">{desc}</span>
-      </div>
-      <div className="col-span-2 text-center text-[13px] font-bold text-emerald-600">{precip}</div>
-      <div className="col-span-2 text-center text-[13px] font-bold text-slate-500 hidden sm:block">{hum}</div>
-      <div className="col-span-3 sm:col-span-2 flex items-center justify-end gap-3 sm:gap-4">
-        <span className="text-[13px] font-bold text-slate-500 w-6 text-right shrink-0">{min}</span>
-        <div className="w-16 sm:w-28 h-2 bg-slate-100 rounded-full overflow-hidden relative border border-slate-200 shrink-0">
-          <div 
-            className="absolute h-full rounded-full bg-gradient-to-r from-blue-400 via-emerald-400 to-yellow-400 shadow-sm" 
-            style={{ left: `${barStart}%`, right: `${barEnd}%` }}
-          ></div>
-        </div>
-        <span className="text-[13px] font-bold text-slate-900 w-6 text-left shrink-0">{max}</span>
-      </div>
-    </div>
-  );
-}
-
