@@ -15,7 +15,8 @@ import {
   Compass,
   Navigation,
   AlertTriangle,
-  Loader2
+  Loader2,
+  HelpCircle
 } from 'lucide-react';
 import {
   getRainViewerData,
@@ -472,8 +473,16 @@ export default function RadarPage() {
           )}
         </div>
 
-        {/* Right: Geolocation button & Station Indicator */}
+        {/* Right: Geolocation button & Data Sources */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate('/documentation')}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold rounded-lg transition-colors shadow-xs"
+            title="View Data Sources and Documentation"
+          >
+            <HelpCircle className="w-3.5 h-3.5 text-slate-500" />
+            <span className="hidden sm:inline">Data Sources</span>
+          </button>
           <button
             onClick={handleLocateMe}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold rounded-lg transition-colors shadow-xs"

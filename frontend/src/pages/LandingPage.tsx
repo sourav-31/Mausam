@@ -215,7 +215,11 @@ export default function LandingPage() {
         {/* Sidebar Footer */}
         <div className="p-5 border-t border-slate-100 space-y-1">
           <NavItem icon={<Settings />} label="Settings" />
-          <NavItem icon={<HelpCircle />} label="Documentation" />
+          <NavItem 
+            icon={<HelpCircle />} 
+            label="Documentation" 
+            onClick={() => navigate('/documentation')} 
+          />
         </div>
       </aside>
 
@@ -832,9 +836,14 @@ export default function LandingPage() {
                   <span>Mausam 2.0 Weather Intelligence — Open-Meteo & DWD Real-Time Telemetry</span>
                 </div>
                 <div className="flex items-center gap-5">
+                  <span 
+                    onClick={() => navigate('/documentation')}
+                    className="text-blue-600 hover:text-blue-700 font-bold cursor-pointer transition-colors"
+                  >
+                    Data Sources & Documentation →
+                  </span>
                   <span className="hover:text-slate-600 cursor-pointer transition-colors">Sensor Status: 100%</span>
                   <span className="hover:text-slate-600 cursor-pointer transition-colors">API Latency: 42ms</span>
-                  <span className="hover:text-slate-600 cursor-pointer transition-colors">Privacy & Terms</span>
                 </div>
               </div>
             </>
