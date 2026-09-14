@@ -168,14 +168,20 @@ Creating a free account lets you:
  * Intelligent Heuristic Matcher:
  * Used as an instant fallback when GEMINI_API_KEY is not configured or during network hiccups.
  */
-export function matchKnowledge(userQuery: string): string {
+export function matchKnowledge(userQuery: string, dynamicContext?: string): string {
   const queryLower = userQuery.toLowerCase().trim();
+
+  // If outdoor activity / walk / jog / workout query and dynamic analysis is available
+  if (/walk|running|jog|cycling|outdoor|workout|exercise|best time|go out/i.test(queryLower) && dynamicContext) {
+    return dynamicContext;
+  }
 
   // Greetings
   if (/^(hi|hello|hey|greetings|hola|namaste|good (morning|afternoon|evening))/i.test(queryLower)) {
     return `👋 Hello! I'm your **Mausam AI Assistant**. 
 
 I have complete knowledge about **Mausam 2.0**! You can ask me about:
+• 🚶 **Best time for a walk or outdoor workout** based on your local weather & health
 • 🌧️ How to use the **Live Radar** & track rain storms
 • 🌡️ Switching between **°C and °F**
 • 🏥 **Health alerts** for asthma, migraines & joint sensitivity
@@ -189,6 +195,18 @@ How can I help you today?`;
   // Thanks
   if (/^(thanks|thank you|awesome|great|cool|perfect|good job)/i.test(queryLower)) {
     return `You're very welcome! Let me know if you have any more questions about weather forecasts, the radar, or health alerts on Mausam 2.0. Have a wonderful day! ☀️`;
+  }
+
+  // If outdoor activity query without dynamic context yet
+  if (/walk|running|jog|cycling|outdoor|workout|exercise|best time/i.test(queryLower)) {
+    return `🚶 **Personalized Outdoor Activity Advisory**
+
+To recommend the exact best time for your walk:
+1. **Weather Analysis**: We check hourly precipitation (rain chance), temperature comfort sweet-spot (18°C–24°C), and peak UV index.
+2. **Air Quality**: We monitor real-time PM2.5 levels to protect respiratory health.
+3. **Personalized Health**: If you have Asthma, Migraines, or Arthritis, we tailor windows to avoid sudden pressure drops or particulate spikes.
+
+*Tip: Make sure your GPS location or city is selected at the top of the page so I can calculate your exact hourly schedule!*`;
   }
 
   // Score knowledge entries based on keyword matches
@@ -218,10 +236,11 @@ How can I help you today?`;
 I'm here to help with anything on **Mausam 2.0**! Here are popular topics you can explore:
 
 1. **[Live Radar](/radar)**: Track real-time rain and cloud movements with time animation.
-2. **Temperature Units**: Click the **°C / °F** button in the top navigation header to toggle units.
-3. **Air Quality & Health**: View AQI, PM2.5 ratings, and health warnings for asthma or migraines.
-4. **Data Sources**: Read our **[Documentation](/documentation)** to learn about ECMWF, NOAA GFS, and RainViewer models.
-5. **Location Search**: Use the search bar at the top to find any city worldwide, or click the GPS icon.
+2. **Walk & Outdoor Planner**: Ask me *"What is the best time for a walk today?"* for a personalized schedule.
+3. **Temperature Units**: Click the **°C / °F** button in the top navigation header to toggle units.
+4. **Air Quality & Health**: View AQI, PM2.5 ratings, and health warnings for asthma or migraines.
+5. **Data Sources**: Read our **[Documentation](/documentation)** to learn about ECMWF, NOAA GFS, and RainViewer models.
 
-*Tip: You can ask me specific questions like "How does the radar work?" or "Explain AQI"!*`;
+*Tip: You can ask me specific questions like "When should I go for a walk?" or "How does the radar work?"!*`;
 }
+

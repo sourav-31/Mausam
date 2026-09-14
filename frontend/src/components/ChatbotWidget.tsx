@@ -14,12 +14,15 @@ import {
   Compass,
   Thermometer,
   MessageCircleQuestion,
-  ExternalLink
+  ExternalLink,
+  Footprints
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLocation } from '../contexts/LocationContext';
 import { chatService, type ChatMessage } from '../services/chat.service';
 
 const STARTER_PROMPTS = [
+  { icon: Footprints, label: 'Best time for a walk today?', prompt: 'What is the best time for me to go for a walk today based on the weather and air quality?' },
   { icon: CloudRain, label: 'How does live radar work?', prompt: 'How does the live radar work?' },
   { icon: Thermometer, label: 'Switch °C to °F', prompt: 'How do I switch temperature units between Celsius and Fahrenheit?' },
   { icon: Wind, label: 'Explain AQI & PM2.5', prompt: 'What does the Air Quality Index (AQI) score and PM2.5 mean?' },
@@ -29,6 +32,7 @@ const STARTER_PROMPTS = [
 
 export default function ChatbotWidget() {
   const navigate = useNavigate();
+  const { activeLocation } = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -75,7 +79,11 @@ export default function ChatbotWidget() {
     setIsLoading(true);
 
     try {
-      const response = await chatService.sendMessage(newMessages);
+      const response = await chatService.sendMessage(newMessages, {
+        latitude: activeLocation.latitude,
+        longitude: activeLocation.longitude,
+        cityName: activeLocation.name,
+      });
       const assistantMsg: ChatMessage = {
         role: 'assistant',
         content: response.reply,

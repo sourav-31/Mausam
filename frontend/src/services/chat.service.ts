@@ -7,6 +7,12 @@ export interface ChatMessage {
   isAiGenerated?: boolean;
 }
 
+export interface ChatLocation {
+  latitude: number;
+  longitude: number;
+  cityName?: string;
+}
+
 export interface ChatResponse {
   reply: string;
   model: string;
@@ -15,11 +21,14 @@ export interface ChatResponse {
 
 export const chatService = {
   /**
-   * Send conversation messages to backend /api/chat
+   * Send conversation messages and active location to backend /api/chat
    */
-  async sendMessage(messages: ChatMessage[]): Promise<ChatResponse> {
+  async sendMessage(messages: ChatMessage[], location?: ChatLocation): Promise<ChatResponse> {
     const payload = messages.map(({ role, content }) => ({ role, content }));
-    const response = await api.post<ChatResponse>('/chat', { messages: payload });
+    const response = await api.post<ChatResponse>('/chat', {
+      messages: payload,
+      location,
+    });
     return response.data;
   },
 };
