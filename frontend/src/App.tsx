@@ -1,12 +1,23 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import LandingPage from './pages/LandingPage';
-import AuthPage from './pages/AuthPage';
-import OnboardingPage from './pages/OnboardingPage';
-import HealthProfilePage from './pages/HealthProfilePage';
-import PersonalizedHome from './pages/PersonalizedHome';
-import RadarPage from './pages/RadarPage';
-import DocumentationPage from './pages/DocumentationPage';
 import { useAuth } from './contexts/AuthContext';
+
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const AuthPage = lazy(() => import('./pages/AuthPage'));
+const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
+const HealthProfilePage = lazy(() => import('./pages/HealthProfilePage'));
+const PersonalizedHome = lazy(() => import('./pages/PersonalizedHome'));
+const RadarPage = lazy(() => import('./pages/RadarPage'));
+const DocumentationPage = lazy(() => import('./pages/DocumentationPage'));
+import ChatbotWidget from './components/ChatbotWidget';
+
+function PageLoader() {
+  return (
+    <div className="flex h-screen w-full items-center justify-center bg-background">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+    </div>
+  );
+}
 
 // ── Route Protection ───────────────────────────────────────────────────────────
 
@@ -51,26 +62,31 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-background font-sans antialiased text-foreground">
-        <Routes>
-          {/* Public — main dashboard & maps (accessible to all) */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/radar" element={<RadarPage />} />
-          <Route path="/documentation" element={<DocumentationPage />} />
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            {/* Public — main dashboard & maps (accessible to all) */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/radar" element={<RadarPage />} />
+            <Route path="/documentation" element={<DocumentationPage />} />
 
-          {/* Public — auth pages (redirect if already logged in) */}
-          <Route path="/login" element={<RequireGuest><AuthPage /></RequireGuest>} />
-          <Route path="/register" element={<RequireGuest><AuthPage /></RequireGuest>} />
+            {/* Public — auth pages (redirect if already logged in) */}
+            <Route path="/login" element={<RequireGuest><AuthPage /></RequireGuest>} />
+            <Route path="/register" element={<RequireGuest><AuthPage /></RequireGuest>} />
 
-          {/* Onboarding — requires auth, skips if already completed */}
-          <Route path="/onboarding" element={<OnboardingGuard><OnboardingPage /></OnboardingGuard>} />
-          <Route path="/onboarding/health" element={<RequireAuth><HealthProfilePage /></RequireAuth>} />
+            {/* Onboarding — requires auth, skips if already completed */}
+            <Route path="/onboarding" element={<OnboardingGuard><OnboardingPage /></OnboardingGuard>} />
+            <Route path="/onboarding/health" element={<RequireAuth><HealthProfilePage /></RequireAuth>} />
 
-          {/* Protected — personalized home */}
-          <Route path="/home" element={<RequireAuth><PersonalizedHome /></RequireAuth>} />
+            {/* Protected — personalized home */}
+            <Route path="/home" element={<RequireAuth><PersonalizedHome /></RequireAuth>} />
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+
+        {/* Global Workable Weather AI Assistant */}
+        <ChatbotWidget />
       </div>
     </Router>
   );
