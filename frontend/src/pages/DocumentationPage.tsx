@@ -20,13 +20,18 @@ import {
   Radio,
   FileCode,
   Copy,
-  Check
+  Check,
+  Bot,
+  Sparkles,
+  Terminal,
+  Server,
+  HeartPulse
 } from 'lucide-react';
 
 interface DataSource {
   id: string;
   name: string;
-  category: 'forecast' | 'radar' | 'geo' | 'air' | 'engine';
+  category: 'forecast' | 'radar' | 'geo' | 'air' | 'engine' | 'ai';
   categoryLabel: string;
   badge: string;
   provider: string;
@@ -334,6 +339,96 @@ const DATA_SOURCES: DataSource[] = [
 }`
       }
     ]
+  },
+  {
+    id: 'mausam-ai-assistant',
+    name: 'Mausam AI Conversational Intelligence & Chatbot Engine',
+    category: 'ai',
+    categoryLabel: 'Conversational AI & LLMs',
+    badge: 'Gemini 1.5 Flash + Context Synthesis',
+    provider: 'Google DeepMind (Gemini API) & Mausam AI Core',
+    providerUrl: 'https://ai.google.dev',
+    icon: Bot,
+    accentColor: 'text-purple-600',
+    bgLight: 'bg-purple-50/70',
+    borderColor: 'border-purple-200',
+    whatItPowers:
+      'Powers the floating Mausam AI conversational chatbot widget across all pages. Delivers real-time meteorological guidance, smart walking & routine advice, personalized health risk warnings (asthma, migraine, joint aches), radar layer explanations, and automated navigational help.',
+    modelsAndNetworks:
+      'Google Gemini 1.5 Flash (high-throughput generative model with 1M+ token context window) combined with a local heuristic Knowledge Base fallback and real-time WeatherContextService analysis.',
+    updateCadence:
+      'Real-time streaming inference on demand with live 24-hour Open-Meteo telemetry & Copernicus air quality injection.',
+    dataResolution:
+      'Coordinate-level precision (down to GPS points), personalized user health profile weighting, and hour-by-hour atmospheric indices.',
+    license:
+      'Google Gemini API Developer Terms & Mausam 2.0 Open Architecture (MIT License).',
+    endpoints: [
+      {
+        label: 'Mausam AI Conversational Pipeline',
+        method: 'POST',
+        url: '/api/chat',
+        description:
+          'Primary backend conversational router. Ingests user message history and coordinates, authenticates user JWT, calculates 24-hour weather and air quality scoring via WeatherContextService, builds dynamic system prompts, and routes to Gemini 1.5 Flash or local fallback.',
+        sampleResponse: `{
+  "reply": "The best window for your walk today is between 7:00 AM and 9:00 AM. Temperatures will be a comfortable 22°C with low humidity (48%) and clean air (PM2.5: 18 µg/m³). Avoid 1:00 PM to 4:00 PM due to high UV index (8.2) and heat.",
+  "model": "gemini-1.5-flash",
+  "isAiGenerated": true
+}`
+      },
+      {
+        label: 'Google Generative Language API (Gemini 1.5 Flash)',
+        method: 'POST',
+        url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}',
+        description:
+          'Direct Google Cloud generative language API call configured with temperature 0.7, topK 40, topP 0.95, and dynamic system instructions containing verified atmospheric telemetry.',
+        sampleResponse: `{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Current conditions in New Delhi show 24.3°C with 58% humidity. Rain probability remains below 5% for the next 12 hours. Air quality is moderate with PM2.5 at 48 µg/m³."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 420,
+    "candidatesTokenCount": 54,
+    "totalTokenCount": 474
+  }
+}`
+      },
+      {
+        label: '24-Hour Atmospheric & Health Sensitivity Analyzer',
+        method: 'GET',
+        url: '/api/weather/context-analysis (internal service: weatherContext.service.ts)',
+        description:
+          'Evaluates 24-hour Open-Meteo atmospheric forecasts and Copernicus PM2.5/PM10 air quality against user medical conditions (asthma, migraine, joint sensitivity) to calculate optimal outdoor activity windows.',
+        sampleResponse: `{
+  "bestWindow": "7:00 AM - 9:00 AM",
+  "bestHour": {
+    "hour": 8,
+    "temperature": 22.4,
+    "uvIndex": 2.1,
+    "pm25": 18.2,
+    "score": 9.4
+  },
+  "reasons": [
+    "Optimal temperature for physical exertion",
+    "Lowest PM2.5 particulate concentration",
+    "0% precipitation probability"
+  ],
+  "healthAlerts": [
+    "Safe for asthma: PM2.5 well below sensitive thresholds",
+    "Barometric pressure steady at 1014 hPa (low migraine risk)"
+  ]
+}`
+      }
+    ]
   }
 ];
 
@@ -344,11 +439,13 @@ export default function DocumentationPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [expandedEndpoints, setExpandedEndpoints] = useState<Record<string, boolean>>({
     'open-meteo-weather': true,
-    'rainviewer-radar': true
+    'rainviewer-radar': true,
+    'mausam-ai-assistant': true
   });
 
   const categories = [
     { id: 'all', label: 'All Sources', icon: Database, count: DATA_SOURCES.length },
+    { id: 'ai', label: 'AI Chatbot & LLMs', icon: Bot, count: DATA_SOURCES.filter(s => s.category === 'ai').length },
     { id: 'forecast', label: 'Atmosphere & Forecasts', icon: Cloud, count: DATA_SOURCES.filter(s => s.category === 'forecast').length },
     { id: 'radar', label: 'Doppler Radar & Satellite', icon: Radio, count: DATA_SOURCES.filter(s => s.category === 'radar').length },
     { id: 'geo', label: 'Geospatial & Maps', icon: Map, count: DATA_SOURCES.filter(s => s.category === 'geo').length },
@@ -453,10 +550,14 @@ export default function DocumentationPage() {
             </p>
 
             {/* Quick Metrics */}
-            <div className="mt-6 pt-6 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="mt-6 pt-6 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-5 gap-4">
               <div>
-                <span className="text-2xl font-black text-white">6</span>
+                <span className="text-2xl font-black text-white">7</span>
                 <p className="text-xs text-slate-400 font-medium mt-0.5">Core Telemetry Feeds</p>
+              </div>
+              <div>
+                <span className="text-2xl font-black text-purple-400">Gemini 1.5</span>
+                <p className="text-xs text-slate-400 font-medium mt-0.5">AI Atmospheric Bot</p>
               </div>
               <div>
                 <span className="text-2xl font-black text-cyan-400">1,000+</span>
@@ -488,7 +589,7 @@ export default function DocumentationPage() {
             <span className="text-xs font-semibold text-slate-400">End-to-End Flow</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5 relative flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 mb-1">
@@ -527,9 +628,9 @@ export default function DocumentationPage() {
                   <span>STEP 3</span>
                   <Cpu className="w-3.5 h-3.5 text-sky-600" />
                 </div>
-                <h4 className="font-extrabold text-slate-900 text-xs">Mausam Algorithmic Synthesis</h4>
+                <h4 className="font-extrabold text-slate-900 text-xs">Algorithmic Synthesis</h4>
                 <p className="text-slate-500 mt-1 text-[11px] leading-relaxed">
-                  InsightEngine calculates asthma/joint risks; PriorityEngine ranks storms; Spatial IDW blends thermal grids.
+                  InsightEngine calculates health risks; PriorityEngine ranks storms; Spatial IDW blends thermal grids.
                 </p>
               </div>
               <div className="mt-3 pt-2 border-t border-slate-200/80 text-[10px] text-sky-600 font-bold">
@@ -537,19 +638,35 @@ export default function DocumentationPage() {
               </div>
             </div>
 
+            <div className="bg-purple-50/50 border border-purple-200 rounded-lg p-3.5 relative flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between text-[11px] font-bold text-purple-600 mb-1">
+                  <span>STEP 4</span>
+                  <Bot className="w-3.5 h-3.5 text-purple-600" />
+                </div>
+                <h4 className="font-extrabold text-slate-900 text-xs">Mausam AI Reasoning</h4>
+                <p className="text-slate-500 mt-1 text-[11px] leading-relaxed">
+                  Gemini 1.5 Flash ingests live 24h weather + user health conditions to recommend walking hours & alerts.
+                </p>
+              </div>
+              <div className="mt-3 pt-2 border-t border-purple-200/80 text-[10px] text-purple-700 font-bold">
+                Output: Conversational Insights
+              </div>
+            </div>
+
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5 relative flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 mb-1">
-                  <span>STEP 4</span>
+                  <span>STEP 5</span>
                   <Activity className="w-3.5 h-3.5 text-emerald-600" />
                 </div>
-                <h4 className="font-extrabold text-slate-900 text-xs">Ultra-Fast Client Rendering</h4>
+                <h4 className="font-extrabold text-slate-900 text-xs">Client Rendering & Chat</h4>
                 <p className="text-slate-500 mt-1 text-[11px] leading-relaxed">
-                  Vite + React renders responsive cards and Leaflet WebGL/Canvas maps at smooth 60fps with zero latency.
+                  Vite + React renders responsive UI cards, interactive Leaflet maps, and floating AI chat drawer at 60fps.
                 </p>
               </div>
               <div className="mt-3 pt-2 border-t border-slate-200/80 text-[10px] text-emerald-600 font-bold">
-                Output: Live User Dashboard
+                Output: Live Dashboard + Chatbot
               </div>
             </div>
           </div>
@@ -797,6 +914,205 @@ export default function DocumentationPage() {
             })
           )}
         </div>
+
+        {/* Dedicated Mausam AI Chatbot Architecture & Source Details Section */}
+        <section className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-[11px] font-bold">
+                <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                NEW ARCHITECTURE • CONVERSATIONAL AI
+              </div>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                <Bot className="w-6 h-6 text-purple-600" />
+                Mausam AI Chatbot: System Architecture & Source Implementation
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium">
+                Comprehensive technical overview of the dual-engine inference model, live multi-window atmospheric ingestion, and source code components.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
+              <span className="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping"></span>
+                Gemini 1.5 Flash Active
+              </span>
+            </div>
+          </div>
+
+          {/* Three Core Architectural Pillars */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-gradient-to-b from-purple-50/60 to-white p-5 rounded-xl border border-purple-200/80 space-y-2.5">
+              <div className="w-9 h-9 rounded-lg bg-purple-600 text-white flex items-center justify-center font-black shadow-xs">
+                <Bot className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-extrabold text-slate-900">1. Google Gemini 1.5 Flash LLM</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Utilizes Google's high-throughput <code className="bg-purple-100/70 text-purple-800 px-1 py-0.2 rounded font-mono text-[11px]">gemini-1.5-flash</code> foundation model via Google Generative Language REST API. Configured with temperature 0.7, topP 0.95, and max 800 output tokens for concise, fact-grounded atmospheric responses.
+              </p>
+              <div className="pt-2 text-[11px] font-bold text-purple-700 flex items-center gap-1">
+                <span>1M+ Context Token Window</span>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-b from-blue-50/60 to-white p-5 rounded-xl border border-blue-200/80 space-y-2.5">
+              <div className="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black shadow-xs">
+                <Activity className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-extrabold text-slate-900">2. Live Atmospheric Context Ingestion</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Prior to calling the LLM, the backend invokes <code className="bg-blue-100/70 text-blue-800 px-1 py-0.2 rounded font-mono text-[11px]">WeatherContextService</code>. It queries Open-Meteo 24-hour weather and Copernicus AQI (PM2.5, PM10, Ozone), and matches them against user health profiles (asthma, migraine, joint aches) to compute optimal walking hours.
+              </p>
+              <div className="pt-2 text-[11px] font-bold text-blue-700 flex items-center gap-1">
+                <span>Multi-window Environmental Scoring</span>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-b from-emerald-50/60 to-white p-5 rounded-xl border border-emerald-200/80 space-y-2.5">
+              <div className="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-black shadow-xs">
+                <Cpu className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-extrabold text-slate-900">3. Zero-Downtime Heuristic Fallback</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                If the Gemini API key is unconfigured, rate-limited, or offline, Mausam gracefully falls back to the in-memory <code className="bg-emerald-100/70 text-emerald-800 px-1 py-0.2 rounded font-mono text-[11px]">knowledge.ts</code> heuristic engine. It uses regex keyword matching and dynamic outdoor analysis to answer reliably in sub-milliseconds.
+              </p>
+              <div className="pt-2 text-[11px] font-bold text-emerald-700 flex items-center gap-1">
+                <span>100% Offline Resilience</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Source Code Implementation Map */}
+          <div className="space-y-3 pt-2">
+            <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+              <Code2 className="w-4 h-4 text-slate-500" />
+              AI Chatbot Source Code Map & File Roles
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              {/* File 1 */}
+              <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-2 hover:border-slate-300 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Server className="w-4 h-4 text-purple-600" />
+                    <span className="font-mono font-bold text-slate-900">backend/src/routes/chat.routes.ts</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-purple-100 text-purple-700">
+                    POST /api/chat
+                  </span>
+                </div>
+                <p className="text-slate-600 text-[11px] leading-relaxed">
+                  Primary backend route. Extracts JWT authentication tokens to resolve the user's health profile and routine via Prisma. Detects fitness/health intent using regex, invokes <code className="font-mono text-slate-800">weatherContextService</code>, constructs the dynamic system prompt, and makes the secure Gemini REST call.
+                </p>
+              </div>
+
+              {/* File 2 */}
+              <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-2 hover:border-slate-300 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <HeartPulse className="w-4 h-4 text-blue-600" />
+                    <span className="font-mono font-bold text-slate-900">backend/src/services/weatherContext.service.ts</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-100 text-blue-700">
+                    Analysis Engine
+                  </span>
+                </div>
+                <p className="text-slate-600 text-[11px] leading-relaxed">
+                  Queries 24-hour forecasts and air quality metrics concurrently. Iterates hour-by-hour calculating environmental suitability scores (0-10) considering temperature comfort, precipitation risk, UV index, and PM2.5 particulate thresholds, custom-weighted for asthma, migraine, or cold sensitivities.
+                </p>
+              </div>
+
+              {/* File 3 */}
+              <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-2 hover:border-slate-300 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Database className="w-4 h-4 text-emerald-600" />
+                    <span className="font-mono font-bold text-slate-900">backend/src/services/knowledge.ts</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-700">
+                    Knowledge Base & Prompt
+                  </span>
+                </div>
+                <p className="text-slate-600 text-[11px] leading-relaxed">
+                  Maintains the comprehensive <code className="font-mono text-slate-800">MAUSAM_SYSTEM_PROMPT</code> defining meteorological guidelines, navigation tips, and UI directions. Contains the heuristic keyword response bank (<code className="font-mono text-slate-800">matchKnowledge</code>) powering zero-downtime offline mode.
+                </p>
+              </div>
+
+              {/* File 4 */}
+              <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-2 hover:border-slate-300 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Bot className="w-4 h-4 text-pink-600" />
+                    <span className="font-mono font-bold text-slate-900">frontend/src/components/ChatbotWidget.tsx</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-pink-100 text-pink-700">
+                    Client UI Widget
+                  </span>
+                </div>
+                <p className="text-slate-600 text-[11px] leading-relaxed">
+                  Floating conversational drawer rendered with Tailwind CSS and Framer Motion. Features quick-starter suggestion chips, auto-scroll, unread message indicators, clean Markdown formatting, and active coordinate pass-through from <code className="font-mono text-slate-800">LocationContext</code>.
+                </p>
+              </div>
+
+              {/* File 5 */}
+              <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-2 hover:border-slate-300 transition-colors md:col-span-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Terminal className="w-4 h-4 text-cyan-600" />
+                    <span className="font-mono font-bold text-slate-900">frontend/src/services/chat.service.ts</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-cyan-100 text-cyan-700">
+                    Axios Client API
+                  </span>
+                </div>
+                <p className="text-slate-600 text-[11px] leading-relaxed">
+                  Lightweight typed service connecting the React client to the <code className="font-mono text-slate-800">/api/chat</code> endpoint. Serializes message history turns and GPS location metadata with error handling.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Dynamic Context Prompt Preview */}
+          <div className="bg-slate-950 rounded-xl p-4 sm:p-5 border border-slate-800 text-slate-200 space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-400">
+              <span className="flex items-center gap-1.5 text-purple-400">
+                <FileCode className="w-4 h-4" />
+                Live System Prompt & Context Injection Pipeline (Internal View)
+              </span>
+              <span className="text-[10px] font-mono text-slate-500">Node.js Server-Side Prompt Construction</span>
+            </div>
+            <pre className="font-mono text-[11px] text-slate-300 bg-slate-900/80 p-3 rounded-lg overflow-x-auto max-h-44 scrollbar-thin border border-slate-800 leading-relaxed">
+{`You are "Mausam AI", the official atmospheric assistant for Mausam 2.0...
+
+### ACTIVE LIVE CONTEXT FOR THIS USER:
+- Current Location: New Delhi (Coordinates: 28.6139, 77.2090)
+- User Status: Logged in as Alex Rivera
+- Saved Routine: Preferred Time = Morning, Activities = Walking, Jogging
+- Health Profile: Conditions = Asthma, Allergies = Pollen, Sensitivities = Heat
+
+### REAL-TIME 24-HOUR ATMOSPHERIC & HEALTH ANALYSIS (OPEN-METEO VERIFIED):
+Best Outdoor Window: 7:00 AM - 9:00 AM (Score: 9.4/10)
+Hourly Parameters: 22.4°C, Humidity 48%, Rain 0%, UV Index 2.1, PM2.5 18 µg/m³
+Avoid Window: 1:00 PM - 4:00 PM (Score: 3.2/10) due to heat (33°C) and UV index (8.2)
+Asthma Safety: Optimal morning hours maintain PM2.5 under 25 µg/m³ threshold.`}
+            </pre>
+            <p className="text-[11px] text-slate-400 pt-1">
+              * Grounded Architecture: Telemetry values are computed deterministically by verified meteorological APIs and numerical pipelines before entering the LLM, eliminating hallucination of atmospheric metrics.
+            </p>
+          </div>
+
+          {/* Chatbot Privacy & Medical Disclaimer */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs text-slate-500">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>
+                <strong>Zero Query Profiling:</strong> Chat interactions are processed in memory and are never used to train external models or target advertisements.
+              </span>
+            </div>
+            <div className="text-[11px] text-slate-400">
+              Advisories represent environmental comfort indicators, not formal clinical medical advice.
+            </div>
+          </div>
+        </section>
 
         {/* Privacy & Ethical Telemetry Commitment Card */}
         <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-slate-50 border border-blue-200 rounded-2xl p-6 sm:p-8">
