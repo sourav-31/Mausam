@@ -482,47 +482,48 @@ export default function DocumentationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col selection:bg-blue-100 selection:text-blue-900">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col selection:bg-blue-100 selection:text-blue-900 overflow-x-hidden">
       {/* Top Sticky Header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={() => navigate('/')}
-              className="p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+              className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors shrink-0"
               title="Return to Dashboard"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black shadow-xs text-sm">
+            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black shadow-xs text-xs sm:text-sm shrink-0">
                 M2
               </div>
-              <div>
-                <h1 className="text-sm font-extrabold text-slate-900 leading-tight flex items-center gap-2">
-                  Mausam 2.0 Documentation
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+              <div className="min-w-0">
+                <h1 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-tight flex items-center gap-1.5 sm:gap-2">
+                  <span className="truncate">Mausam 2.0 Docs</span>
+                  <span className="hidden md:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
                     Open Telemetry
                   </span>
                 </h1>
-                <p className="text-[11px] font-medium text-slate-500">
+                <p className="hidden sm:block text-[11px] font-medium text-slate-500 truncate">
                   Data Providers, Numerical Models & Telemetry Architecture
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <button
               onClick={() => navigate('/radar')}
-              className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition-all flex items-center gap-1.5"
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition-all flex items-center gap-1 sm:gap-1.5"
             >
-              <Layers className="w-3.5 h-3.5 text-blue-600" />
-              <span className="hidden sm:inline">Live</span> Radar Maps
+              <Layers className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+              <span className="hidden sm:inline">Live Radar Maps</span>
+              <span className="sm:hidden">Radar</span>
             </button>
             <button
               onClick={() => navigate('/')}
-              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs"
+              className="px-2.5 sm:px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs shrink-0"
             >
               Dashboard
             </button>
@@ -531,70 +532,70 @@ export default function DocumentationPage() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8 overflow-x-hidden">
         {/* Hero Banner */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white p-6 sm:p-10 shadow-lg border border-slate-800">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white p-5 sm:p-8 md:p-10 shadow-lg border border-slate-800">
           <div className="absolute top-0 right-0 -mt-8 -mr-8 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
           <div className="absolute bottom-0 left-1/3 -mb-10 w-64 h-64 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
           <div className="relative z-10 max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-semibold mb-4 border border-blue-400/30">
-              <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300 text-[11px] sm:text-xs font-semibold mb-3 sm:mb-4 border border-blue-400/30">
+              <ShieldCheck className="w-3.5 h-3.5 text-blue-400 shrink-0" />
               100% Transparency Guarantee
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight">
+            <h2 className="text-xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight">
               Every data feed, satellite, and algorithm behind Mausam 2.0.
             </h2>
-            <p className="mt-3 text-sm sm:text-base text-slate-300 leading-relaxed font-normal">
+            <p className="mt-2.5 sm:mt-3 text-xs sm:text-base text-slate-300 leading-relaxed font-normal">
               Mausam 2.0 aggregates open meteorological models, global Doppler radar feeds, crowdsourced cartography, and client-side interpolation algorithms to deliver sub-second, reliable weather intelligence without commercial bloat or tracking.
             </p>
 
             {/* Quick Metrics */}
-            <div className="mt-6 pt-6 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-5 gap-4">
-              <div>
-                <span className="text-2xl font-black text-white">7</span>
-                <p className="text-xs text-slate-400 font-medium mt-0.5">Core Telemetry Feeds</p>
+            <div className="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+              <div className="bg-slate-850/40 sm:bg-transparent p-2.5 sm:p-0 rounded-lg">
+                <span className="text-xl sm:text-2xl font-black text-white">7</span>
+                <p className="text-[11px] sm:text-xs text-slate-400 font-medium mt-0.5">Core Feeds</p>
               </div>
-              <div>
-                <span className="text-2xl font-black text-purple-400">Gemini 1.5</span>
-                <p className="text-xs text-slate-400 font-medium mt-0.5">AI Atmospheric Bot</p>
+              <div className="bg-slate-850/40 sm:bg-transparent p-2.5 sm:p-0 rounded-lg">
+                <span className="text-xl sm:text-2xl font-black text-purple-400">Gemini 1.5</span>
+                <p className="text-[11px] sm:text-xs text-slate-400 font-medium mt-0.5">AI Atmospheric Bot</p>
               </div>
-              <div>
-                <span className="text-2xl font-black text-cyan-400">1,000+</span>
-                <p className="text-xs text-slate-400 font-medium mt-0.5">Doppler Radar Stations</p>
+              <div className="bg-slate-850/40 sm:bg-transparent p-2.5 sm:p-0 rounded-lg">
+                <span className="text-xl sm:text-2xl font-black text-cyan-400">1,000+</span>
+                <p className="text-[11px] sm:text-xs text-slate-400 font-medium mt-0.5">Doppler Stations</p>
               </div>
-              <div>
-                <span className="text-2xl font-black text-emerald-400">100%</span>
-                <p className="text-xs text-slate-400 font-medium mt-0.5">Free & Open Standards</p>
+              <div className="bg-slate-850/40 sm:bg-transparent p-2.5 sm:p-0 rounded-lg">
+                <span className="text-xl sm:text-2xl font-black text-emerald-400">100%</span>
+                <p className="text-[11px] sm:text-xs text-slate-400 font-medium mt-0.5">Open Standards</p>
               </div>
-              <div>
-                <span className="text-2xl font-black text-amber-400">0</span>
-                <p className="text-xs text-slate-400 font-medium mt-0.5">Ad Trackers / Telemetry</p>
+              <div className="col-span-2 sm:col-span-1 bg-slate-850/40 sm:bg-transparent p-2.5 sm:p-0 rounded-lg">
+                <span className="text-xl sm:text-2xl font-black text-amber-400">0</span>
+                <p className="text-[11px] sm:text-xs text-slate-400 font-medium mt-0.5">Ad Trackers</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Interactive Architecture Flow Diagram */}
-        <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-6 shadow-xs">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center">
+              <div className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                 <Zap className="w-3.5 h-3.5" />
               </div>
-              <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">
+              <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider">
                 System Data Pipeline Architecture
               </h3>
             </div>
-            <span className="text-xs font-semibold text-slate-400">End-to-End Flow</span>
+            <span className="text-[10px] sm:text-xs font-semibold text-slate-400">End-to-End Flow</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5 relative flex flex-col justify-between">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-3.5 relative flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 mb-1">
                   <span>STEP 1</span>
-                  <Compass className="w-3.5 h-3.5 text-blue-600" />
+                  <Compass className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                 </div>
                 <h4 className="font-extrabold text-slate-900 text-xs">Location Geocoding</h4>
                 <p className="text-slate-500 mt-1 text-[11px] leading-relaxed">
@@ -606,11 +607,11 @@ export default function DocumentationPage() {
               </div>
             </div>
 
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5 relative flex flex-col justify-between">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-3.5 relative flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 mb-1">
                   <span>STEP 2</span>
-                  <Cloud className="w-3.5 h-3.5 text-indigo-600" />
+                  <Cloud className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                 </div>
                 <h4 className="font-extrabold text-slate-900 text-xs">Multi-Model Ingestion</h4>
                 <p className="text-slate-500 mt-1 text-[11px] leading-relaxed">
@@ -622,11 +623,11 @@ export default function DocumentationPage() {
               </div>
             </div>
 
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5 relative flex flex-col justify-between">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-3.5 relative flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 mb-1">
                   <span>STEP 3</span>
-                  <Cpu className="w-3.5 h-3.5 text-sky-600" />
+                  <Cpu className="w-3.5 h-3.5 text-sky-600 shrink-0" />
                 </div>
                 <h4 className="font-extrabold text-slate-900 text-xs">Algorithmic Synthesis</h4>
                 <p className="text-slate-500 mt-1 text-[11px] leading-relaxed">
@@ -638,11 +639,11 @@ export default function DocumentationPage() {
               </div>
             </div>
 
-            <div className="bg-purple-50/50 border border-purple-200 rounded-lg p-3.5 relative flex flex-col justify-between">
+            <div className="bg-purple-50/50 border border-purple-200 rounded-lg p-3 sm:p-3.5 relative flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between text-[11px] font-bold text-purple-600 mb-1">
                   <span>STEP 4</span>
-                  <Bot className="w-3.5 h-3.5 text-purple-600" />
+                  <Bot className="w-3.5 h-3.5 text-purple-600 shrink-0" />
                 </div>
                 <h4 className="font-extrabold text-slate-900 text-xs">Mausam AI Reasoning</h4>
                 <p className="text-slate-500 mt-1 text-[11px] leading-relaxed">
@@ -654,11 +655,11 @@ export default function DocumentationPage() {
               </div>
             </div>
 
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5 relative flex flex-col justify-between">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-3.5 relative flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 mb-1">
                   <span>STEP 5</span>
-                  <Activity className="w-3.5 h-3.5 text-emerald-600" />
+                  <Activity className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 </div>
                 <h4 className="font-extrabold text-slate-900 text-xs">Client Rendering & Chat</h4>
                 <p className="text-slate-500 mt-1 text-[11px] leading-relaxed">
@@ -673,16 +674,16 @@ export default function DocumentationPage() {
         </div>
 
         {/* Filter & Search Bar */}
-        <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center justify-between">
           {/* Search Box */}
-          <div className="relative flex-1 max-w-md">
+          <div className="relative flex-1 max-w-full sm:max-w-md">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search providers, models, or metrics (e.g. radar, ECMWF, pollen)..."
-              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 hover:border-slate-300 focus:border-blue-500 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 outline-none transition-all shadow-xs"
+              placeholder="Search providers, models, or metrics..."
+              className="w-full pl-9 pr-14 py-2 bg-white border border-slate-200 hover:border-slate-300 focus:border-blue-500 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 outline-none transition-all shadow-xs"
             />
             {searchQuery && (
               <button
@@ -694,13 +695,13 @@ export default function DocumentationPage() {
             )}
           </div>
 
-          <div className="text-xs font-bold text-slate-500 self-center">
+          <div className="text-xs font-bold text-slate-500 self-start sm:self-center">
             Showing <span className="text-slate-900">{filteredSources.length}</span> of {DATA_SOURCES.length} data sources
           </div>
         </div>
 
         {/* Category Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0 touch-pan-x">
           {categories.map(cat => {
             const Icon = cat.icon;
             const isActive = selectedCategory === cat.id;
@@ -708,7 +709,7 @@ export default function DocumentationPage() {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
                   isActive
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
@@ -729,7 +730,7 @@ export default function DocumentationPage() {
         </div>
 
         {/* Data Sources Grid */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {filteredSources.length === 0 ? (
             <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
               <Database className="w-10 h-10 text-slate-300 mx-auto mb-3" />
@@ -756,17 +757,17 @@ export default function DocumentationPage() {
                   className="bg-white rounded-xl border border-slate-200 hover:border-slate-300 transition-all shadow-xs overflow-hidden"
                 >
                   {/* Card Header */}
-                  <div className="p-5 sm:p-6 border-b border-slate-100">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex items-start gap-3.5">
+                  <div className="p-4 sm:p-6 border-b border-slate-100">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4">
+                      <div className="flex items-start gap-3 sm:gap-3.5 min-w-0">
                         <div
-                          className={`w-10 h-10 rounded-xl ${source.bgLight} ${source.accentColor} flex items-center justify-center shrink-0 border ${source.borderColor}`}
+                          className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${source.bgLight} ${source.accentColor} flex items-center justify-center shrink-0 border ${source.borderColor}`}
                         >
-                          <Icon className="w-5 h-5" />
+                          <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                         </div>
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="text-base font-extrabold text-slate-900 leading-tight">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                            <h3 className="text-sm sm:text-base font-extrabold text-slate-900 leading-tight">
                               {source.name}
                             </h3>
                             <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
@@ -777,19 +778,19 @@ export default function DocumentationPage() {
                               Operational
                             </span>
                           </div>
-                          <p className="text-xs text-slate-400 font-medium mt-1">
+                          <p className="text-[11px] sm:text-xs text-slate-400 font-medium mt-1">
                             Maintained by <span className="font-semibold text-slate-600">{source.provider}</span>
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
+                      <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
                         {source.providerUrl !== '#' && (
                           <a
                             href={source.providerUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition-all flex items-center gap-1.5"
+                            className="flex-1 sm:flex-initial justify-center px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition-all flex items-center gap-1.5"
                           >
                             <span>Official Docs</span>
                             <ExternalLink className="w-3 h-3" />
@@ -797,7 +798,7 @@ export default function DocumentationPage() {
                         )}
                         <button
                           onClick={() => toggleEndpoint(source.id)}
-                          className="px-3 py-1.5 rounded-lg text-xs font-bold text-blue-600 hover:bg-blue-50 border border-blue-200 transition-all flex items-center gap-1"
+                          className="flex-1 sm:flex-initial justify-center px-3 py-1.5 rounded-lg text-xs font-bold text-blue-600 hover:bg-blue-50 border border-blue-200 transition-all flex items-center gap-1"
                         >
                           <Code2 className="w-3.5 h-3.5" />
                           <span>{isExpanded ? 'Hide Payload' : 'View Payload'}</span>
@@ -807,16 +808,16 @@ export default function DocumentationPage() {
                   </div>
 
                   {/* Card Body: Details Grid */}
-                  <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
+                  <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 text-xs">
                     <div>
-                      <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">
+                      <h4 className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1 sm:mb-1.5">
                         What It Powers In Mausam 2.0
                       </h4>
                       <p className="text-slate-700 leading-relaxed font-medium">{source.whatItPowers}</p>
                     </div>
 
                     <div>
-                      <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">
+                      <h4 className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1 sm:mb-1.5">
                         Underlying Meteorological Models / Networks
                       </h4>
                       <p className="text-slate-700 leading-relaxed font-medium">{source.modelsAndNetworks}</p>
@@ -847,19 +848,19 @@ export default function DocumentationPage() {
 
                   {/* Collapsible Endpoints & Raw Payload Section */}
                   {isExpanded && (
-                    <div className="bg-slate-900 text-slate-200 p-5 border-t border-slate-800 space-y-4">
-                      <div className="flex items-center justify-between text-xs font-bold text-slate-400">
+                    <div className="bg-slate-900 text-slate-200 p-3.5 sm:p-5 border-t border-slate-800 space-y-3 sm:space-y-4 overflow-hidden">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs font-bold text-slate-400">
                         <span className="flex items-center gap-1.5 text-blue-400">
-                          <FileCode className="w-4 h-4" />
+                          <FileCode className="w-4 h-4 shrink-0" />
                           API Endpoints & Real Telemetry Schema
                         </span>
-                        <span>REST / JSON / Mercator Tiles</span>
+                        <span className="text-[10px] sm:text-xs">REST / JSON / Mercator Tiles</span>
                       </div>
 
                       {source.endpoints.map((ep, idx) => (
-                        <div key={idx} className="space-y-2 bg-slate-950/80 rounded-lg p-3.5 border border-slate-800">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
+                        <div key={idx} className="space-y-2 bg-slate-950/80 rounded-lg p-3 sm:p-3.5 border border-slate-800 overflow-hidden">
+                          <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span
                                 className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
                                   ep.method === 'GET'
@@ -871,11 +872,11 @@ export default function DocumentationPage() {
                               >
                                 {ep.method}
                               </span>
-                              <span className="text-xs font-bold text-slate-200">{ep.label}</span>
+                              <span className="text-xs font-bold text-slate-200 break-words">{ep.label}</span>
                             </div>
                             <button
                               onClick={() => handleCopy(ep.url, `${source.id}-${idx}`)}
-                              className="text-[10px] font-bold text-slate-400 hover:text-white flex items-center gap-1 self-start sm:self-auto transition-colors"
+                              className="text-[10px] font-bold text-slate-400 hover:text-white flex items-center gap-1 shrink-0 transition-colors ml-auto sm:ml-0"
                             >
                               {copiedId === `${source.id}-${idx}` ? (
                                 <>
@@ -891,7 +892,7 @@ export default function DocumentationPage() {
                             </button>
                           </div>
 
-                          <div className="font-mono text-[11px] bg-slate-900 p-2 rounded text-blue-300 break-all select-all border border-slate-800/80">
+                          <div className="font-mono text-[10px] sm:text-[11px] bg-slate-900 p-2 rounded text-blue-300 break-all select-all border border-slate-800/80">
                             {ep.url}
                           </div>
 
@@ -901,7 +902,7 @@ export default function DocumentationPage() {
                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                               Sample Telemetry Response
                             </span>
-                            <pre className="font-mono text-[11px] text-emerald-300 bg-slate-900/90 p-3 rounded-lg overflow-x-auto max-h-48 scrollbar-thin border border-slate-800/60">
+                            <pre className="font-mono text-[10px] sm:text-[11px] text-emerald-300 bg-slate-900/90 p-2.5 sm:p-3 rounded-lg overflow-x-auto max-h-48 scrollbar-thin border border-slate-800/60 whitespace-pre">
                               {ep.sampleResponse}
                             </pre>
                           </div>
@@ -916,23 +917,23 @@ export default function DocumentationPage() {
         </div>
 
         {/* Dedicated Mausam AI Chatbot Architecture & Source Details Section */}
-        <section className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+        <section className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-6 md:p-8 shadow-xs space-y-5 sm:space-y-6 overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 sm:pb-5 border-b border-slate-100">
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-[11px] font-bold">
-                <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-[10px] sm:text-[11px] font-bold">
+                <Sparkles className="w-3.5 h-3.5 text-purple-600 shrink-0" />
                 NEW ARCHITECTURE • CONVERSATIONAL AI
               </div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-                <Bot className="w-6 h-6 text-purple-600" />
-                Mausam AI Chatbot: System Architecture & Source Implementation
+              <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 shrink-0" />
+                <span>Mausam AI Chatbot Architecture</span>
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-medium">
                 Comprehensive technical overview of the dual-engine inference model, live multi-window atmospheric ingestion, and source code components.
               </p>
             </div>
             <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
-              <span className="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 flex items-center gap-1.5">
+              <span className="px-2.5 sm:px-3 py-1 rounded-lg text-[11px] sm:text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping"></span>
                 Gemini 1.5 Flash Active
               </span>
@@ -940,42 +941,42 @@ export default function DocumentationPage() {
           </div>
 
           {/* Three Core Architectural Pillars */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gradient-to-b from-purple-50/60 to-white p-5 rounded-xl border border-purple-200/80 space-y-2.5">
-              <div className="w-9 h-9 rounded-lg bg-purple-600 text-white flex items-center justify-center font-black shadow-xs">
-                <Bot className="w-5 h-5" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
+            <div className="bg-gradient-to-b from-purple-50/60 to-white p-4 sm:p-5 rounded-xl border border-purple-200/80 space-y-2">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-purple-600 text-white flex items-center justify-center font-black shadow-xs">
+                <Bot className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <h3 className="text-sm font-extrabold text-slate-900">1. Google Gemini 1.5 Flash LLM</h3>
+              <h3 className="text-xs sm:text-sm font-extrabold text-slate-900">1. Google Gemini 1.5 Flash LLM</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Utilizes Google's high-throughput <code className="bg-purple-100/70 text-purple-800 px-1 py-0.2 rounded font-mono text-[11px]">gemini-1.5-flash</code> foundation model via Google Generative Language REST API. Configured with temperature 0.7, topP 0.95, and max 800 output tokens for concise, fact-grounded atmospheric responses.
+                Utilizes Google's high-throughput <code className="bg-purple-100/70 text-purple-800 px-1 py-0.2 rounded font-mono text-[10px] sm:text-[11px]">gemini-1.5-flash</code> foundation model via Google Generative Language REST API. Configured with temperature 0.7, topP 0.95, and max 800 output tokens for concise, fact-grounded atmospheric responses.
               </p>
-              <div className="pt-2 text-[11px] font-bold text-purple-700 flex items-center gap-1">
+              <div className="pt-1.5 text-[11px] font-bold text-purple-700 flex items-center gap-1">
                 <span>1M+ Context Token Window</span>
               </div>
             </div>
 
-            <div className="bg-gradient-to-b from-blue-50/60 to-white p-5 rounded-xl border border-blue-200/80 space-y-2.5">
-              <div className="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black shadow-xs">
-                <Activity className="w-5 h-5" />
+            <div className="bg-gradient-to-b from-blue-50/60 to-white p-4 sm:p-5 rounded-xl border border-blue-200/80 space-y-2">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black shadow-xs">
+                <Activity className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <h3 className="text-sm font-extrabold text-slate-900">2. Live Atmospheric Context Ingestion</h3>
+              <h3 className="text-xs sm:text-sm font-extrabold text-slate-900">2. Live Context Ingestion</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Prior to calling the LLM, the backend invokes <code className="bg-blue-100/70 text-blue-800 px-1 py-0.2 rounded font-mono text-[11px]">WeatherContextService</code>. It queries Open-Meteo 24-hour weather and Copernicus AQI (PM2.5, PM10, Ozone), and matches them against user health profiles (asthma, migraine, joint aches) to compute optimal walking hours.
+                Prior to calling the LLM, the backend invokes <code className="bg-blue-100/70 text-blue-800 px-1 py-0.2 rounded font-mono text-[10px] sm:text-[11px]">WeatherContextService</code>. It queries Open-Meteo 24-hour weather and Copernicus AQI (PM2.5, PM10, Ozone), and matches them against user health profiles (asthma, migraine, joint aches) to compute optimal walking hours.
               </p>
-              <div className="pt-2 text-[11px] font-bold text-blue-700 flex items-center gap-1">
+              <div className="pt-1.5 text-[11px] font-bold text-blue-700 flex items-center gap-1">
                 <span>Multi-window Environmental Scoring</span>
               </div>
             </div>
 
-            <div className="bg-gradient-to-b from-emerald-50/60 to-white p-5 rounded-xl border border-emerald-200/80 space-y-2.5">
-              <div className="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-black shadow-xs">
-                <Cpu className="w-5 h-5" />
+            <div className="bg-gradient-to-b from-emerald-50/60 to-white p-4 sm:p-5 rounded-xl border border-emerald-200/80 space-y-2">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-black shadow-xs">
+                <Cpu className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <h3 className="text-sm font-extrabold text-slate-900">3. Zero-Downtime Heuristic Fallback</h3>
+              <h3 className="text-xs sm:text-sm font-extrabold text-slate-900">3. Zero-Downtime Heuristic Fallback</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                If the Gemini API key is unconfigured, rate-limited, or offline, Mausam gracefully falls back to the in-memory <code className="bg-emerald-100/70 text-emerald-800 px-1 py-0.2 rounded font-mono text-[11px]">knowledge.ts</code> heuristic engine. It uses regex keyword matching and dynamic outdoor analysis to answer reliably in sub-milliseconds.
+                If the Gemini API key is unconfigured, rate-limited, or offline, Mausam gracefully falls back to the in-memory <code className="bg-emerald-100/70 text-emerald-800 px-1 py-0.2 rounded font-mono text-[10px] sm:text-[11px]">knowledge.ts</code> heuristic engine. It uses regex keyword matching and dynamic outdoor analysis to answer reliably in sub-milliseconds.
               </p>
-              <div className="pt-2 text-[11px] font-bold text-emerald-700 flex items-center gap-1">
+              <div className="pt-1.5 text-[11px] font-bold text-emerald-700 flex items-center gap-1">
                 <span>100% Offline Resilience</span>
               </div>
             </div>
@@ -984,19 +985,19 @@ export default function DocumentationPage() {
           {/* Source Code Implementation Map */}
           <div className="space-y-3 pt-2">
             <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-              <Code2 className="w-4 h-4 text-slate-500" />
+              <Code2 className="w-4 h-4 text-slate-500 shrink-0" />
               AI Chatbot Source Code Map & File Roles
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
               {/* File 1 */}
-              <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-2 hover:border-slate-300 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Server className="w-4 h-4 text-purple-600" />
-                    <span className="font-mono font-bold text-slate-900">backend/src/routes/chat.routes.ts</span>
+              <div className="bg-slate-50 rounded-xl border border-slate-200 p-3.5 sm:p-4 space-y-2 hover:border-slate-300 transition-colors overflow-hidden">
+                <div className="flex flex-wrap items-center justify-between gap-1.5">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Server className="w-4 h-4 text-purple-600 shrink-0" />
+                    <span className="font-mono font-bold text-slate-900 text-[11px] sm:text-xs break-all">backend/src/routes/chat.routes.ts</span>
                   </div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-purple-100 text-purple-700">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-purple-100 text-purple-700 shrink-0">
                     POST /api/chat
                   </span>
                 </div>
@@ -1006,13 +1007,13 @@ export default function DocumentationPage() {
               </div>
 
               {/* File 2 */}
-              <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-2 hover:border-slate-300 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <HeartPulse className="w-4 h-4 text-blue-600" />
-                    <span className="font-mono font-bold text-slate-900">backend/src/services/weatherContext.service.ts</span>
+              <div className="bg-slate-50 rounded-xl border border-slate-200 p-3.5 sm:p-4 space-y-2 hover:border-slate-300 transition-colors overflow-hidden">
+                <div className="flex flex-wrap items-center justify-between gap-1.5">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <HeartPulse className="w-4 h-4 text-blue-600 shrink-0" />
+                    <span className="font-mono font-bold text-slate-900 text-[11px] sm:text-xs break-all">backend/src/services/weatherContext.service.ts</span>
                   </div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-100 text-blue-700">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-100 text-blue-700 shrink-0">
                     Analysis Engine
                   </span>
                 </div>
@@ -1022,13 +1023,13 @@ export default function DocumentationPage() {
               </div>
 
               {/* File 3 */}
-              <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-2 hover:border-slate-300 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Database className="w-4 h-4 text-emerald-600" />
-                    <span className="font-mono font-bold text-slate-900">backend/src/services/knowledge.ts</span>
+              <div className="bg-slate-50 rounded-xl border border-slate-200 p-3.5 sm:p-4 space-y-2 hover:border-slate-300 transition-colors overflow-hidden">
+                <div className="flex flex-wrap items-center justify-between gap-1.5">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Database className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="font-mono font-bold text-slate-900 text-[11px] sm:text-xs break-all">backend/src/services/knowledge.ts</span>
                   </div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-700">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-700 shrink-0">
                     Knowledge Base & Prompt
                   </span>
                 </div>
@@ -1038,13 +1039,13 @@ export default function DocumentationPage() {
               </div>
 
               {/* File 4 */}
-              <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-2 hover:border-slate-300 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Bot className="w-4 h-4 text-pink-600" />
-                    <span className="font-mono font-bold text-slate-900">frontend/src/components/ChatbotWidget.tsx</span>
+              <div className="bg-slate-50 rounded-xl border border-slate-200 p-3.5 sm:p-4 space-y-2 hover:border-slate-300 transition-colors overflow-hidden">
+                <div className="flex flex-wrap items-center justify-between gap-1.5">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Bot className="w-4 h-4 text-pink-600 shrink-0" />
+                    <span className="font-mono font-bold text-slate-900 text-[11px] sm:text-xs break-all">frontend/src/components/ChatbotWidget.tsx</span>
                   </div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-pink-100 text-pink-700">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-pink-100 text-pink-700 shrink-0">
                     Client UI Widget
                   </span>
                 </div>
@@ -1054,13 +1055,13 @@ export default function DocumentationPage() {
               </div>
 
               {/* File 5 */}
-              <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-2 hover:border-slate-300 transition-colors md:col-span-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Terminal className="w-4 h-4 text-cyan-600" />
-                    <span className="font-mono font-bold text-slate-900">frontend/src/services/chat.service.ts</span>
+              <div className="bg-slate-50 rounded-xl border border-slate-200 p-3.5 sm:p-4 space-y-2 hover:border-slate-300 transition-colors md:col-span-2 overflow-hidden">
+                <div className="flex flex-wrap items-center justify-between gap-1.5">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Terminal className="w-4 h-4 text-cyan-600 shrink-0" />
+                    <span className="font-mono font-bold text-slate-900 text-[11px] sm:text-xs break-all">frontend/src/services/chat.service.ts</span>
                   </div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-cyan-100 text-cyan-700">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-cyan-100 text-cyan-700 shrink-0">
                     Axios Client API
                   </span>
                 </div>
@@ -1072,15 +1073,15 @@ export default function DocumentationPage() {
           </div>
 
           {/* Dynamic Context Prompt Preview */}
-          <div className="bg-slate-950 rounded-xl p-4 sm:p-5 border border-slate-800 text-slate-200 space-y-2">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-400">
+          <div className="bg-slate-950 rounded-xl p-3.5 sm:p-5 border border-slate-800 text-slate-200 space-y-2 overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs font-bold text-slate-400">
               <span className="flex items-center gap-1.5 text-purple-400">
-                <FileCode className="w-4 h-4" />
-                Live System Prompt & Context Injection Pipeline (Internal View)
+                <FileCode className="w-4 h-4 shrink-0" />
+                Live System Prompt & Context Injection Pipeline
               </span>
               <span className="text-[10px] font-mono text-slate-500">Node.js Server-Side Prompt Construction</span>
             </div>
-            <pre className="font-mono text-[11px] text-slate-300 bg-slate-900/80 p-3 rounded-lg overflow-x-auto max-h-44 scrollbar-thin border border-slate-800 leading-relaxed">
+            <pre className="font-mono text-[10px] sm:text-[11px] text-slate-300 bg-slate-900/80 p-2.5 sm:p-3 rounded-lg overflow-x-auto max-h-44 scrollbar-thin border border-slate-800 leading-relaxed whitespace-pre">
 {`You are "Mausam AI", the official atmospheric assistant for Mausam 2.0...
 
 ### ACTIVE LIVE CONTEXT FOR THIS USER:
@@ -1095,47 +1096,47 @@ Hourly Parameters: 22.4°C, Humidity 48%, Rain 0%, UV Index 2.1, PM2.5 18 µg/m�
 Avoid Window: 1:00 PM - 4:00 PM (Score: 3.2/10) due to heat (33°C) and UV index (8.2)
 Asthma Safety: Optimal morning hours maintain PM2.5 under 25 µg/m³ threshold.`}
             </pre>
-            <p className="text-[11px] text-slate-400 pt-1">
+            <p className="text-[10px] sm:text-[11px] text-slate-400 pt-1">
               * Grounded Architecture: Telemetry values are computed deterministically by verified meteorological APIs and numerical pipelines before entering the LLM, eliminating hallucination of atmospheric metrics.
             </p>
           </div>
 
           {/* Chatbot Privacy & Medical Disclaimer */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs text-slate-500">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3 pt-3 border-t border-slate-100 text-xs text-slate-500">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>
-                <strong>Zero Query Profiling:</strong> Chat interactions are processed in memory and are never used to train external models or target advertisements.
+              <span className="text-[11px] sm:text-xs">
+                <strong>Zero Query Profiling:</strong> Chat interactions are processed in memory and never used to train external models or target ads.
               </span>
             </div>
-            <div className="text-[11px] text-slate-400">
+            <div className="text-[10px] sm:text-[11px] text-slate-400">
               Advisories represent environmental comfort indicators, not formal clinical medical advice.
             </div>
           </div>
         </section>
 
         {/* Privacy & Ethical Telemetry Commitment Card */}
-        <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-slate-50 border border-blue-200 rounded-2xl p-6 sm:p-8">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+        <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-slate-50 border border-blue-200 rounded-2xl p-4 sm:p-6 md:p-8">
+          <div className="flex flex-col sm:flex-row items-start gap-3.5 sm:gap-4">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-base font-extrabold text-slate-900">
+              <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
                 Privacy & Data Minimization Architecture
               </h3>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                 Mausam 2.0 does not track your location history, does not sell telemetry coordinates to commercial advertisers, and does not require third-party cookies or intrusive mobile SDKs. When you query weather for a city or request browser GPS telemetry, your coordinates are strictly utilized to compute local meteorological calculations and cached locally in your browser's private <code className="bg-white px-1.5 py-0.5 rounded text-slate-800 font-mono text-xs border border-slate-200">localStorage</code>.
               </p>
-              <div className="pt-2 flex flex-wrap gap-4 text-xs font-semibold text-slate-700">
+              <div className="pt-2 flex flex-col xs:flex-row flex-wrap gap-2.5 sm:gap-4 text-xs font-semibold text-slate-700">
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> No advertising trackers
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> No advertising trackers
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> End-to-end HTTPS encrypted APIs
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> End-to-end HTTPS encrypted APIs
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Open Source & Transparent
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> Open Source & Transparent
                 </span>
               </div>
             </div>
@@ -1143,21 +1144,21 @@ Asthma Safety: Optimal morning hours maintain PM2.5 under 25 µg/m³ threshold.`
         </div>
 
         {/* Bottom Navigation */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 pb-8 border-t border-slate-200">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 pt-4 pb-8 border-t border-slate-200">
           <div className="text-xs text-slate-500 font-medium text-center sm:text-left">
             Mausam 2.0 Weather Intelligence — Open Telemetry Transparency
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               onClick={() => navigate('/radar')}
-              className="px-4 py-2 rounded-lg text-xs font-bold text-slate-700 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition-all flex items-center gap-1.5"
+              className="w-full sm:w-auto px-4 py-2 rounded-lg text-xs font-bold text-slate-700 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition-all flex items-center justify-center gap-1.5"
             >
               <Layers className="w-4 h-4 text-blue-600" />
               <span>Explore Interactive Radar</span>
             </button>
             <button
               onClick={() => navigate('/')}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs"
+              className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs text-center"
             >
               Back to Dashboard
             </button>
